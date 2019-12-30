@@ -1,8 +1,7 @@
-package main
+package heatPlot
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -11,9 +10,9 @@ import (
 	"image"
 	"image/color"
 	"image/gif"
+	"io"
 	"log"
 	"math"
-	"os"
 	"strings"
 	"time"
 )
@@ -25,15 +24,7 @@ var (
 		B: 0x0F,
 		A: 0xFF,
 	}
-	goregularfnt    *truetype.Font
-	heatColourCount = flag.Int("hcc", 126, "Heat colour count.. The number of distinct colours. Can't exceed 254 in total. This value is multiplied by 2. Shouldn't change this.")
-	speed           = flag.Duration("speed", 100*time.Millisecond, "The number of microseconds to wait between each frame")
-	pixelSize       = flag.Float64("pixelsize", .1, "How many x or y steps a pixel is. Ie .1 will mean that every 10 unscaled pixels is 1 normal step")
-	scale           = flag.Int("scale", 2, "Magnification of the picture")
-	timeLowerBound  = flag.Int("tlb", 0, "where to start T")
-	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
-	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
-	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
+	goregularfnt *truetype.Font
 )
 
 type State interface {
@@ -234,63 +225,51 @@ func (v Brackets) String() string {
 }
 
 func init() {
-	log.SetFlags(log.Flags() | log.Lshortfile)
-}
-
-func main() {
-	flag.Parse()
-	if flag.NArg() == 0 {
-		log.Print("Please include the formula after the command")
-		return
-	}
 	if fnt, err := truetype.Parse(goregular.TTF); err != nil {
 		log.Panic(err)
 	} else {
 		goregularfnt = fnt
 	}
-	plotSize := image.Rect(-*size, -*size, *size, *size)
+}
+
+func RunFunction(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration) {
+	plotSize := image.Rect(-size, -size, size, size)
 	colours := []color.Color{
 		lineColor,
 		color.White,
 		color.Black,
 	}
-	colours = append(colours, HeatColours()...)
+	colours = append(colours, HeatColours(heatColourCount)...)
 	imgs := []*image.Paletted{}
 	delays := []int{}
 	TUsed := false
-	function := parseFunction(flag.Arg(0))
-	for t := (*timeLowerBound); t < (*timeUpperBound) && TUsed || t == (*timeLowerBound); t++ {
+	function := parseFunction(functionString)
+	for t := (timeLowerBound); t < (timeUpperBound) && TUsed || t == (timeLowerBound); t++ {
 		img := image.NewPaletted(plotSize, colours)
 		if err := paintWhite(img, plotSize); err != nil {
 			log.Panic(err)
 		}
 		var err error
-		if TUsed, err = plotFunction(img, plotSize, function, t); err != nil {
+		if TUsed, err = plotFunction(img, plotSize, function, t, heatColourCount, pixelSize); err != nil {
 			log.Panic(err)
 		}
 		if err := drawPlane(img, plotSize); err != nil {
 			log.Panic(err)
 		}
 		img = FlipAndMoveImage(img)
-		if img, err = AddHeaderAndFooter(img, function, t); err != nil {
+		if img, err = AddHeaderAndFooter(img, function, t, timeUpperBound); err != nil {
 			log.Panic(err)
 		}
-		img = ScaleImage(img, *scale)
+		img = ScaleImage(img, scale)
 		imgs = append(imgs, img)
-		delays = append(delays, int((*speed)/(time.Millisecond*10)))
+		delays = append(delays, int((speed)/(time.Millisecond*10)))
 	}
-	w, err := os.OpenFile(*outputFile, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer w.Close()
 	if err := gif.EncodeAll(w, &gif.GIF{
 		Image: imgs,
 		Delay: delays,
 	}); err != nil {
 		log.Panic(err)
 	}
-	log.Printf("Done see %s", *outputFile)
 }
 
 func parseFunction(arg string) *Function {
@@ -300,7 +279,7 @@ func parseFunction(arg string) *Function {
 	return yyResult
 }
 
-func AddHeaderAndFooter(img *image.Paletted, function *Function, t int) (*image.Paletted, error) {
+func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound int) (*image.Paletted, error) {
 	borderSizes := image.Pt(20, 20)
 	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, img.Rect.Max.X+borderSizes.X*2, img.Rect.Max.Y+borderSizes.Y*2)
 	result := image.NewPaletted(newRect, img.Palette)
@@ -315,7 +294,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t int) (*image.
 	if err := AddText(fmt.Sprintf("%s", function.String()), result, newRect.Min.X, newRect.Min.Y+borderSizes.Y); err != nil {
 		return nil, err
 	}
-	if err := AddText(fmt.Sprintf("T: %d/%d - https://github.com/arran4/", t, (*timeUpperBound)), result, newRect.Min.X, newRect.Max.Y-10); err != nil {
+	if err := AddText(fmt.Sprintf("T: %d/%d - https://github.com/arran4/", t, (timeUpperBound)), result, newRect.Min.X, newRect.Max.Y-10); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -363,15 +342,15 @@ func FlipAndMoveImage(img *image.Paletted) *image.Paletted {
 	return result
 }
 
-func plotFunction(img *image.Paletted, size image.Rectangle, function *Function, t int) (TUsed bool, err error) {
+func plotFunction(img *image.Paletted, size image.Rectangle, function *Function, t, heatColourCount int, pixelSize float64) (TUsed bool, err error) {
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
 			var w float64
-			w, TUsed, err = function.Evaluate(float64(x)*(*pixelSize), float64(y)*(*pixelSize), t)
+			w, TUsed, err = function.Evaluate(float64(x)*(pixelSize), float64(y)*(pixelSize), t)
 			if err != nil {
 				return false, err
 			}
-			c := MakeHeatColour(w)
+			c := MakeHeatColour(heatColourCount, w)
 			if c != nil {
 				img.Set(x, y, c)
 			}
@@ -380,10 +359,10 @@ func plotFunction(img *image.Paletted, size image.Rectangle, function *Function,
 	return
 }
 
-func HeatColours() []color.Color {
-	result := make([]color.Color, (*heatColourCount)*2-1, (*heatColourCount)*2-1)
-	for i := 1; i < (*heatColourCount)*2; i++ {
-		v := MakeHeatColour(float64(i)/float64(*heatColourCount) - 1)
+func HeatColours(heatColourCount int) []color.Color {
+	result := make([]color.Color, (heatColourCount)*2-1, (heatColourCount)*2-1)
+	for i := 1; i < (heatColourCount)*2; i++ {
+		v := MakeHeatColour(heatColourCount, float64(i)/float64(heatColourCount)-1)
 		if v == nil {
 			log.Panic("Got nil heat colour....", i)
 		}
@@ -392,19 +371,19 @@ func HeatColours() []color.Color {
 	return result
 }
 
-func MakeHeatColour(i float64) color.Color {
+func MakeHeatColour(heatColourCount int, i float64) color.Color {
 	if i <= -1 || i >= 1 {
 		return nil
 	}
-	c := int((i * 100.0) * (1.0 / float64(*heatColourCount) * 100.0))
+	c := int((i * 100.0) * (1.0 / float64(heatColourCount) * 100.0))
 	if c == 0 {
 		return color.Black
 	}
 	r, b := uint8(255), uint8(255)
 	if i > 0 {
-		r = uint8(255 - int(float64(c)*256.0/float64(*heatColourCount)))
+		r = uint8(255 - int(float64(c)*256.0/float64(heatColourCount)))
 	} else {
-		b = uint8(255 + int(float64(c)*256.0/float64(*heatColourCount)))
+		b = uint8(255 + int(float64(c)*256.0/float64(heatColourCount)))
 	}
 	return &color.RGBA{
 		R: r,

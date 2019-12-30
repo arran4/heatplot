@@ -30,10 +30,11 @@ var (
 const (
 	HeatColourCount = 126
 	Speed           = 100 * time.Millisecond
-	Step            = .1
+	PixelSize       = .1
 	Scale           = 2.0
 	TimeLowerBound  = 0
 	TimeUpperBound  = 100
+	Size            = 100
 )
 
 type State interface {
@@ -216,8 +217,7 @@ func main() {
 	} else {
 		goregularfnt = fnt
 	}
-	plotSize := image.Rect(-100, -100, 100, 100)
-	//graphicSize := image.Rect(-20 + int(float64(plotSize.Min.X) * Scale),-20 + int(float64(plotSize.Min.Y) * Scale), 20 + int(float64(plotSize.Max.X) * Scale), 20 + int(float64(plotSize.Max.Y) * Scale))
+	plotSize := image.Rect(-Size, -Size, Size, Size)
 	colours := []color.Color{
 		lineColor,
 		color.White,
@@ -415,7 +415,7 @@ func plotFunction(img *image.Paletted, size image.Rectangle, function *Function,
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
 			var w float64
-			w, TUsed, err = function.Evaluate(float64(x)*Step, float64(y)*Step, t)
+			w, TUsed, err = function.Evaluate(float64(x)*PixelSize, float64(y)*PixelSize, t)
 			if err != nil {
 				return false, err
 			}

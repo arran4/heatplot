@@ -28,22 +28,23 @@ const (
 )
 
 type State interface {
-	CurX() int
-	CurY() int
+	CurX() float64
+	CurY() float64
 	CurT() int
 }
 
 type RealState struct {
-	X,Y,T int
+	X,Y float64
+	T int
 	AccessedX,AccessedY,AccessedT bool
 }
 
-func (rs *RealState) CurX() int {
+func (rs *RealState) CurX() float64 {
 	rs.AccessedX = true
 	return rs.X
 }
 
-func (rs *RealState) CurY() int {
+func (rs *RealState) CurY() float64 {
 	rs.AccessedY = true
 	return rs.Y
 }
@@ -61,7 +62,7 @@ type Function struct {
 	Equals *Equals
 }
 
-func (v Function) Evaluate(X, Y, T int) (weight float64, TUsed bool, err error) {
+func (v Function) Evaluate(X, Y float64, T int) (weight float64, TUsed bool, err error) {
 	state := &RealState{
 		X:         X,
 		Y:         Y,
@@ -233,7 +234,7 @@ func main() {
 				},
 			},
 		},
-		&Function{ // 4
+		&Function{ // 5
 			Equals: &Equals{
 				LHS:  &Var{
 					Var: "T",
@@ -305,7 +306,7 @@ func plotFunction(img *image.Paletted, size image.Rectangle, colours []color.Col
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
 			var w float64
-			w, TUsed, err = function.Evaluate(x,y,t)
+			w, TUsed, err = function.Evaluate(float64(x) / Scale, float64(y) / Scale, t)
 			if err != nil {
 				return false, err
 			}

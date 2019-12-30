@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/gif"
 	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -22,6 +23,8 @@ var (
 
 const (
 	HeatColourCount = 126
+	Speed = 100 * time.Millisecond
+	Scale = 10
 )
 
 type State interface {
@@ -70,6 +73,11 @@ func (v Function) Evaluate(X, Y, T int) (weight float64, TUsed bool, err error) 
 	if v.Equals == nil {
 		return 0,false, errors.New("no such formula")
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
 	weight = v.Equals.Evaluate(state)
 	TUsed = state.AccessedT
 	return
@@ -109,6 +117,51 @@ func (c Const) Evaluate(state State) float64 {
 	return c.Value
 }
 
+type Plus struct {
+	LHS Expression
+	RHS Expression
+}
+
+func (v Plus) Evaluate(state State) float64 {
+	return v.RHS.Evaluate(state) + v.LHS.Evaluate(state)
+}
+
+type Subtract struct {
+	LHS Expression
+	RHS Expression
+}
+
+func (v Subtract) Evaluate(state State) float64 {
+	return v.RHS.Evaluate(state) - v.LHS.Evaluate(state)
+}
+
+type Multiply struct {
+	LHS Expression
+	RHS Expression
+}
+
+func (v Multiply) Evaluate(state State) float64 {
+	return v.RHS.Evaluate(state) * v.LHS.Evaluate(state)
+}
+
+type Divide struct {
+	LHS Expression
+	RHS Expression
+}
+
+func (v Divide) Evaluate(state State) float64 {
+	return v.RHS.Evaluate(state) / v.LHS.Evaluate(state)
+}
+
+type Power struct {
+	LHS Expression
+	RHS Expression
+}
+
+func (v Power) Evaluate(state State) float64 {
+	return math.Pow(v.LHS.Evaluate(state), v.RHS.Evaluate(state))
+}
+
 func main() {
 	log.SetFlags(log.Flags()|log.Lshortfile)
 	graphicSize := image.Rect(-120,-120, 120, 120)
@@ -120,7 +173,7 @@ func main() {
 	}
 	colours = append(colours, HeatColours()...)
 	functions := []*Function {
-		&Function{
+		&Function{ // 0
 			Equals: &Equals{
 				LHS: &Var{
 					Var: "Y",
@@ -130,7 +183,7 @@ func main() {
 				},
 			},
 		},
-		&Function{
+		&Function{ // 1
 			Equals: &Equals{
 				LHS: &Var{
 					Var: "Y",
@@ -140,13 +193,68 @@ func main() {
 				},
 			},
 		},
-		&Function{
+		&Function{ // 2
 			Equals: &Equals{
 				LHS: &Var{
 					Var: "Y",
 				},
 				RHS: &Var{
 					Var: "X",
+				},
+			},
+		},
+		&Function{ // 3
+			Equals: &Equals{
+				LHS: &Var{
+					Var: "Y",
+				},
+				RHS: &Multiply{
+					LHS: &Var{
+						Var: "X",
+					},
+					RHS: &Const{
+						Value: 0.7,
+					},
+				},
+			},
+		},
+		&Function{ // 4
+			Equals: &Equals{
+				LHS: &Var{
+					Var: "Y",
+				},
+				RHS: &Multiply{
+					LHS: &Var{
+						Var: "X",
+					},
+					RHS: &Var{
+						Var: "T",
+					},
+				},
+			},
+		},
+		&Function{ // 4
+			Equals: &Equals{
+				LHS:  &Var{
+					Var: "T",
+				},
+				RHS: &Plus{
+					LHS: &Power{
+						LHS: &Var{
+							Var: "Y",
+						},
+						RHS: &Const{
+							Value: 2,
+						},
+					},
+					RHS: &Power{
+						LHS: &Var{
+							Var: "X",
+						},
+						RHS: &Const{
+							Value: 2,
+						},
+					},
 				},
 			},
 		},
@@ -160,14 +268,14 @@ func main() {
 			log.Panic(err)
 		}
 		var err error
-		if TUsed, err = plotFunction(img, imageSize, colours, functions[2], t); err != nil {
+		if TUsed, err = plotFunction(img, imageSize, colours, functions[len(functions) - 1], t); err != nil {
 			log.Panic(err)
 		}
 		if err := drawPlane(img, imageSize, colours); err != nil {
 			log.Panic(err)
 		}
 		imgs = append(imgs, ConvertImageAxis(img, graphicSize, colours))
-		delays = append(delays, int(1 * time.Second / (time.Millisecond * 10)))
+		delays = append(delays, int(Speed / (time.Millisecond * 10)))
 	}
 	w, err := os.OpenFile("./out.gif", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -187,7 +295,7 @@ func ConvertImageAxis(img *image.Paletted, size image.Rectangle, colours []color
 	result := image.NewPaletted(image.Rect(0,0, size.Dx(), size.Dy()), colours)
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
-			result.Set(x - size.Min.X , y - size.Min.Y, img.At(x, y))
+			result.Set(x - size.Min.X , size.Dy() - (y - size.Min.Y) - 1, img.At(x, y))
 		}
 	}
 	return result
@@ -203,7 +311,6 @@ func plotFunction(img *image.Paletted, size image.Rectangle, colours []color.Col
 			}
 			c := MakeHeatColour(w)
 			if c != nil {
-				log.Print(x, y, c)
 				img.Set(x, y, c)
 			}
 		}
@@ -228,7 +335,6 @@ func MakeHeatColour(i float64) color.Color {
 		return nil
 	}
 	c := int((i * 100.0) * (1.0 / float64(HeatColourCount) * 100.0))
-	log.Print(i, c)
 	if c == 0 {
 		return color.Black
 	}

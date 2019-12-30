@@ -23,8 +23,8 @@ var (
 
 const (
 	HeatColourCount = 126
-	Speed = 100 * time.Millisecond
-	Scale = 10
+	Speed           = 100 * time.Millisecond
+	Step            = .1
 )
 
 type State interface {
@@ -306,7 +306,7 @@ func plotFunction(img *image.Paletted, size image.Rectangle, colours []color.Col
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
 			var w float64
-			w, TUsed, err = function.Evaluate(float64(x) / Scale, float64(y) / Scale, t)
+			w, TUsed, err = function.Evaluate(float64(x) * Step, float64(y) * Step, t)
 			if err != nil {
 				return false, err
 			}

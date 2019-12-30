@@ -456,7 +456,7 @@ func MakeHeatColour(i float64) color.Color {
 	}
 	return &color.RGBA{
 		R: r,
-		G: 255,
+		G: 0,
 		B: b,
 		A: 0xFF,
 	}

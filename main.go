@@ -363,7 +363,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t int) (*image.
 	if err := AddText(fmt.Sprintf("%s", function.String()), result, newRect.Min.X, newRect.Min.Y+borderSizes.Y); err != nil {
 		return nil, err
 	}
-	if err := AddText(fmt.Sprintf("T: %d/%d - https://github.com/arran4/", t, TimeUpperBound), result, newRect.Min.X, newRect.Max.Y); err != nil {
+	if err := AddText(fmt.Sprintf("T: %d/%d - https://github.com/arran4/", t, TimeUpperBound), result, newRect.Min.X, newRect.Max.Y-10); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -371,8 +371,8 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t int) (*image.
 
 func AddText(s string, img *image.Paletted, x int, y int) error {
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
-		Size:       18,
-		DPI:        72 / 1,
+		Size:       12 * 2,
+		DPI:        40,
 		Hinting:    0,
 		SubPixelsX: 0,
 		SubPixelsY: 0,

@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bitbucket.org/arran4/heatplot"
 	"flag"
-	"heatPlot"
 	"log"
 	"os"
 	"time"

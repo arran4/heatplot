@@ -16,11 +16,15 @@ func TestEndToEndParser(t *testing.T) {
 		"y / 4 = x + x * 2",
 		"y / 4 = x * (x + 2)",
 		"y / 4 = (x + x) * 2",
+		"y / 4 = x mod 2 * 2",
+		"y / 4 = mod(x, 3) * 2",
+		"y / 4 = abs(x) + 2 * 2",
 	} {
 		t.Run(fmt.Sprintf("%d: %s", eachI, each), func(t *testing.T) {
 			parser := yyNewParser()
+			yyResult = nil
 			r := parser.Parse(NewCalcLexer(each))
-			t.Logf("Result %d", r)
+			t.Logf("Result %d for %#v", r, each)
 			if yyResult == nil {
 				t.Logf("Error; no result returned %#v", parser)
 				t.Fail()

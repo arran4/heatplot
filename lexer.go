@@ -13,7 +13,7 @@ var (
 
 func init() {
 	var err error
-	calcLexerRegex, err = regexp.Compile("^(?:(\\s)|([+=*^/()-])|(\\d+(?:\\.\\d+)?)|([XxYyTt]))")
+	calcLexerRegex, err = regexp.Compile("^(?:(\\s)|([+=,*^/()-])|(\\d+(?:\\.\\d+)?)|([XxYyTt])|(\\w+))")
 	if err != nil {
 		log.Panic("Regex compile issue", err)
 	}
@@ -72,6 +72,10 @@ func (lex *CalcLexer) subLex(lval *yySymType) int {
 	if len(rResult[4]) > 0 {
 		lval.s = rResult[4]
 		return VAR
+	}
+	if len(rResult[5]) > 0 {
+		lval.s = rResult[5]
+		return FUNCNAME
 	}
 	return 1
 }

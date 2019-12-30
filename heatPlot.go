@@ -200,6 +200,19 @@ func (v Power) String() string {
 	return fmt.Sprintf("%s ^ %s", v.LHS.String(), v.RHS.String())
 }
 
+type Modulus struct {
+	LHS Expression
+	RHS Expression
+}
+
+func (v Modulus) Evaluate(state State) float64 {
+	return math.Mod(v.LHS.Evaluate(state), v.RHS.Evaluate(state))
+}
+
+func (v Modulus) String() string {
+	return fmt.Sprintf("%s %% %s", v.LHS.String(), v.RHS.String())
+}
+
 type Negate struct {
 	Expr Expression
 }
@@ -222,6 +235,141 @@ func (v Brackets) Evaluate(state State) float64 {
 
 func (v Brackets) String() string {
 	return fmt.Sprintf("(%s)", v.Expr.String())
+}
+
+type SingleFunction struct {
+	Name string
+	Expr Expression
+}
+
+func (v SingleFunction) Evaluate(state State) float64 {
+	var r = v.Expr.Evaluate(state)
+	switch strings.ToUpper(v.Name) {
+	case "ABS":
+		r = math.Abs(r)
+	case "ACOS":
+		r = math.Acos(r)
+	case "ACOSH":
+		r = math.Acosh(r)
+	case "ASIN":
+		r = math.Asin(r)
+	case "ASINH":
+		r = math.Asinh(r)
+	case "ATAN":
+		r = math.Atan(r)
+	case "ATANH":
+		r = math.Atanh(r)
+	case "CBRT":
+		r = math.Cbrt(r)
+	case "CEIL":
+		r = math.Ceil(r)
+	case "COS":
+		r = math.Cos(r)
+	case "COSH":
+		r = math.Cosh(r)
+	case "ERF":
+		r = math.Erf(r)
+	case "ERFC":
+		r = math.Erfc(r)
+	case "ERFCINV":
+		r = math.Erfcinv(r)
+	case "ERFINV":
+		r = math.Erfinv(r)
+	case "EXP":
+		r = math.Exp(r)
+	case "EXP2":
+		r = math.Exp2(r)
+	case "EXPM1":
+		r = math.Expm1(r)
+	case "FLOOR":
+		r = math.Floor(r)
+	case "GAMMA":
+		r = math.Gamma(r)
+	case "J0":
+		r = math.J0(r)
+	case "J1":
+		r = math.J1(r)
+	case "LOG":
+		r = math.Log(r)
+	case "LOG10":
+		r = math.Log10(r)
+	case "LOG1P":
+		r = math.Log1p(r)
+	case "LOG2":
+		r = math.Log2(r)
+	case "LOGB":
+		r = math.Logb(r)
+	case "ROUND":
+		r = math.Round(r)
+	case "ROUNDTOEVEN":
+		r = math.RoundToEven(r)
+	case "SIN":
+		r = math.Sin(r)
+	case "SINH":
+		r = math.Sinh(r)
+	case "SQRT":
+		r = math.Sqrt(r)
+	case "TAN":
+		r = math.Tan(r)
+	case "TANH":
+		r = math.Tanh(r)
+	case "TRUNC":
+		r = math.Trunc(r)
+	case "Y0":
+		r = math.Y0(r)
+	case "Y1":
+		r = math.Y1(r)
+	}
+	return r
+}
+
+func (v SingleFunction) String() string {
+	return fmt.Sprintf("%s(%s)", v.Name, v.Expr.String())
+}
+
+type DoubleFunction struct {
+	Name  string
+	Expr1 Expression
+	Expr2 Expression
+	Infix bool
+}
+
+func (v DoubleFunction) Evaluate(state State) float64 {
+	var r1 = v.Expr1.Evaluate(state)
+	var r2 = v.Expr2.Evaluate(state)
+	switch strings.ToUpper(v.Name) {
+	case "ATAN2":
+		r1 = math.Atan2(r1, r2)
+	case "COPYSIGN":
+		r1 = math.Copysign(r1, r2)
+	case "HYPOT":
+		r1 = math.Hypot(r1, r2)
+	case "NEXTAFTER":
+		r1 = math.Nextafter(r1, r2)
+	case "POW":
+		r1 = math.Pow(r1, r2)
+	case "LDEXP":
+		r1 = math.Ldexp(r1, int(r2))
+	case "MAX":
+		r1 = math.Max(r1, r2)
+	case "MIN":
+		r1 = math.Min(r1, r2)
+	case "MOD":
+		r1 = math.Mod(r1, r2)
+	case "REMAINDER":
+		r1 = math.Remainder(r1, r2)
+	case "DIM":
+		r1 = math.Dim(r1, r2)
+	}
+	return r1
+}
+
+func (v DoubleFunction) String() string {
+	if v.Infix {
+		return fmt.Sprintf("%s %s %s", v.Expr1.String(), v.Name, v.Expr2.String())
+	} else {
+		return fmt.Sprintf("%s(%s, %s)", v.Name, v.Expr1.String(), v.Expr2.String())
+	}
 }
 
 func init() {

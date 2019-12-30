@@ -1,4 +1,4 @@
-module heatPlot
+module bitbucket.org/arran4/heatplot
 
 go 1.12
 

@@ -7,10 +7,9 @@ import __yyfmt__ "fmt"
 
 var yyResult *Function
 
-//line calc.y:15
+//line calc.y:14
 type yySymType struct {
-	yys int
-	//    equals *Equals
+	yys   int
 	float float64
 	s     string
 	expr  Expression
@@ -19,6 +18,7 @@ type yySymType struct {
 const Highest = 57346
 const FLOAT = 57347
 const VAR = 57348
+const FUNCNAME = 57349
 
 var yyToknames = [...]string{
 	"$end",
@@ -27,6 +27,7 @@ var yyToknames = [...]string{
 	"Highest",
 	"FLOAT",
 	"VAR",
+	"FUNCNAME",
 	"'='",
 	"'+'",
 	"'-'",
@@ -34,6 +35,7 @@ var yyToknames = [...]string{
 	"'/'",
 	"'%'",
 	"'^'",
+	"','",
 	"'('",
 	"')'",
 }
@@ -43,7 +45,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line calc.y:45
+//line calc.y:46
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -54,21 +56,25 @@ var yyExca = [...]int{
 
 const yyPrivate = 57344
 
-const yyLast = 46
+const yyLast = 80
 
 var yyAct = [...]int{
 
-	2, 11, 12, 1, 13, 0, 14, 15, 16, 17,
-	18, 19, 20, 21, 22, 9, 10, 11, 12, 0,
-	13, 0, 23, 3, 4, 0, 5, 6, 0, 0,
-	0, 0, 7, 8, 9, 10, 11, 12, 0, 13,
-	9, 10, 11, 12, 0, 13,
+	2, 19, 16, 1, 0, 0, 17, 18, 0, 20,
+	21, 22, 23, 24, 25, 26, 27, 28, 0, 16,
+	29, 10, 11, 12, 13, 14, 15, 32, 0, 31,
+	0, 0, 16, 33, 10, 11, 12, 13, 14, 15,
+	0, 16, 34, 10, 11, 12, 13, 14, 15, 0,
+	0, 30, 3, 4, 7, 16, 5, 6, 0, 12,
+	13, 14, 15, 8, 16, 9, 10, 11, 12, 13,
+	14, 15, 16, 0, 10, 11, 12, 13, 14, 15,
 }
 var yyPact = [...]int{
 
-	18, -1000, 26, -1000, -1000, 18, 18, 18, 18, 18,
-	18, 18, 18, 18, -1000, -1000, 7, 32, -9, -9,
-	-1000, -1000, -1000, -1000,
+	47, -1000, 57, -1000, -1000, 47, 47, -15, 47, 47,
+	47, 47, 47, 47, 47, 47, 47, -5, -5, 47,
+	34, 65, 48, 48, -5, -5, -5, -5, -5, 12,
+	-1000, -1000, 47, 25, -1000,
 }
 var yyPgo = [...]int{
 
@@ -77,41 +83,43 @@ var yyPgo = [...]int{
 var yyR1 = [...]int{
 
 	0, 2, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1,
+	1, 1, 1, 1, 1, 1,
 }
 var yyR2 = [...]int{
 
-	0, 3, 1, 1, 3, 3, 3, 3, 3, 2,
-	2, 3,
+	0, 3, 1, 1, 3, 3, 3, 3, 3, 3,
+	2, 2, 3, 4, 6, 3,
 }
 var yyChk = [...]int{
 
-	-1000, -2, -1, 5, 6, 8, 9, 14, 7, 8,
-	9, 10, 11, 13, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, 15,
+	-1000, -2, -1, 5, 6, 9, 10, 7, 16, 8,
+	9, 10, 11, 12, 13, 14, 7, -1, -1, 16,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	17, 17, 15, -1, 17,
 }
 var yyDef = [...]int{
 
 	0, -2, 0, 2, 3, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 9, 10, 0, 1, 4, 5,
-	6, 7, 8, 11,
+	0, 0, 0, 0, 0, 0, 0, 10, 11, 0,
+	0, 1, 4, 5, 6, 7, 8, 9, 12, 0,
+	15, 13, 0, 0, 14,
 }
 var yyTok1 = [...]int{
 
 	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 12, 3, 3,
-	14, 15, 10, 8, 3, 9, 3, 11, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 13, 3, 3,
+	16, 17, 11, 9, 15, 10, 3, 12, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 7, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 8, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 13,
+	3, 3, 3, 3, 14,
 }
 var yyTok2 = [...]int{
 
-	2, 3, 4, 5, 6,
+	2, 3, 4, 5, 6, 7,
 }
 var yyTok3 = [...]int{
 	0,
@@ -456,67 +464,91 @@ yydefault:
 
 	case 1:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line calc.y:29
+//line calc.y:27
 		{
 			yyResult = &Function{Equals: &Equals{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}}
 		}
 	case 2:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line calc.y:32
+//line calc.y:30
 		{
 			yyVAL.expr = &Const{Value: yyDollar[1].float}
 		}
 	case 3:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line calc.y:33
+//line calc.y:31
 		{
 			yyVAL.expr = &Var{Var: yyDollar[1].s}
 		}
 	case 4:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line calc.y:34
+//line calc.y:32
 		{
 			yyVAL.expr = &Plus{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}
 		}
 	case 5:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line calc.y:35
+//line calc.y:33
 		{
 			yyVAL.expr = &Subtract{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}
 		}
 	case 6:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line calc.y:36
+//line calc.y:34
 		{
 			yyVAL.expr = &Multiply{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}
 		}
 	case 7:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line calc.y:37
+//line calc.y:35
 		{
 			yyVAL.expr = &Divide{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}
 		}
 	case 8:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line calc.y:39
+//line calc.y:36
+		{
+			yyVAL.expr = &Modulus{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}
+		}
+	case 9:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line calc.y:37
 		{
 			yyVAL.expr = &Power{LHS: yyDollar[1].expr, RHS: yyDollar[3].expr}
 		}
-	case 9:
+	case 10:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line calc.y:40
+//line calc.y:38
 		{
 			yyVAL.expr = yyDollar[2].expr
 		}
-	case 10:
+	case 11:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line calc.y:41
+//line calc.y:39
 		{
 			yyVAL.expr = &Negate{Expr: yyDollar[2].expr}
 		}
-	case 11:
+	case 12:
 		yyDollar = yyS[yypt-3 : yypt+1]
+//line calc.y:40
+		{
+			yyVAL.expr = &DoubleFunction{Infix: true, Name: yyDollar[2].s, Expr1: yyDollar[1].expr, Expr2: yyDollar[3].expr}
+		}
+	case 13:
+		yyDollar = yyS[yypt-4 : yypt+1]
+//line calc.y:41
+		{
+			yyVAL.expr = &SingleFunction{Name: yyDollar[1].s, Expr: yyDollar[3].expr}
+		}
+	case 14:
+		yyDollar = yyS[yypt-6 : yypt+1]
 //line calc.y:42
+		{
+			yyVAL.expr = &DoubleFunction{Infix: false, Name: yyDollar[1].s, Expr1: yyDollar[3].expr, Expr2: yyDollar[5].expr}
+		}
+	case 15:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line calc.y:43
 		{
 			yyVAL.expr = &Brackets{Expr: yyDollar[2].expr}
 		}

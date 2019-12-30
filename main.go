@@ -142,7 +142,7 @@ func (c Const) Evaluate(state State) float64 {
 }
 
 func (v Const) String() string {
-	return fmt.Sprintf("%.2f", v.Value)
+	return fmt.Sprintf("%g", v.Value)
 }
 
 type Plus struct {
@@ -155,7 +155,7 @@ func (v Plus) Evaluate(state State) float64 {
 }
 
 func (v Plus) String() string {
-	return fmt.Sprintf("(%s + %s)", v.LHS.String(), v.RHS.String())
+	return fmt.Sprintf("%s + %s", v.LHS.String(), v.RHS.String())
 }
 
 type Subtract struct {
@@ -168,7 +168,7 @@ func (v Subtract) Evaluate(state State) float64 {
 }
 
 func (v Subtract) String() string {
-	return fmt.Sprintf("(%s - %s)", v.LHS.String(), v.RHS.String())
+	return fmt.Sprintf("%s - %s", v.LHS.String(), v.RHS.String())
 }
 
 type Multiply struct {
@@ -181,7 +181,7 @@ func (v Multiply) Evaluate(state State) float64 {
 }
 
 func (v Multiply) String() string {
-	return fmt.Sprintf("(%s * %s)", v.LHS.String(), v.RHS.String())
+	return fmt.Sprintf("%s * %s", v.LHS.String(), v.RHS.String())
 }
 
 type Divide struct {
@@ -194,7 +194,7 @@ func (v Divide) Evaluate(state State) float64 {
 }
 
 func (v Divide) String() string {
-	return fmt.Sprintf("(%s / %s)", v.LHS.String(), v.RHS.String())
+	return fmt.Sprintf("%s / %s", v.LHS.String(), v.RHS.String())
 }
 
 type Power struct {
@@ -207,7 +207,7 @@ func (v Power) Evaluate(state State) float64 {
 }
 
 func (v Power) String() string {
-	return fmt.Sprintf("(%s ^ %s)", v.LHS.String(), v.RHS.String())
+	return fmt.Sprintf("%s ^ %s", v.LHS.String(), v.RHS.String())
 }
 
 type Negate struct {
@@ -234,8 +234,11 @@ func (v Brackets) String() string {
 	return fmt.Sprintf("(%s)", v.Expr.String())
 }
 
-func main() {
+func init() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
+}
+
+func main() {
 	if fnt, err := truetype.Parse(goregular.TTF); err != nil {
 		log.Panic(err)
 	} else {

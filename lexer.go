@@ -32,17 +32,19 @@ func NewCalcLexer(input string) yyLexer {
 
 func (lex *CalcLexer) Lex(lval *yySymType) int {
 	for {
-		if r := lex.subLex(lval); r == -1 {
-			continue
-		} else {
-			return r
+		if len(lex.input) == 0 {
+			return 0
 		}
+		r := lex.subLex(lval)
+		if r == -1 {
+			continue
+		}
+		return r
 	}
 }
 
 func (lex *CalcLexer) subLex(lval *yySymType) int {
 	rResult := calcLexerRegex.FindStringSubmatch(lex.input)
-	log.Printf("%v %v", lex.input, rResult)
 	defer func() {
 		if rResult == nil || len(rResult) <= 1 || len(rResult[0]) == 0 {
 			return
@@ -50,20 +52,20 @@ func (lex *CalcLexer) subLex(lval *yySymType) int {
 		lex.input = lex.input[len(rResult[0]):]
 	}()
 	if rResult == nil || len(rResult) <= 1 || len(rResult[0]) == 0 {
-		return 0
+		return 1
 	}
 	if len(rResult[1]) > 0 {
 		return -1
 	}
 	if len(rResult[2]) > 0 {
-		return yyToknameByString("'" + rResult[2] + "'")
+		return int(rune(rResult[2][0]))
 	}
 	if len(rResult[3]) > 0 {
 		var err error
 		lval.float, err = strconv.ParseFloat(rResult[3], 64)
 		if err != nil {
 			lex.err = err
-			return 0
+			return 1
 		}
 		return FLOAT
 	}
@@ -71,7 +73,7 @@ func (lex *CalcLexer) subLex(lval *yySymType) int {
 		lval.s = rResult[4]
 		return VAR
 	}
-	return 0
+	return 1
 }
 
 func (lex *CalcLexer) Error(s string) {
@@ -84,5 +86,5 @@ func yyToknameByString(s string) int {
 			return i
 		}
 	}
-	return -1
+	return 1
 }

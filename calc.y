@@ -10,10 +10,10 @@ var yyResult *Function
 %token<float> FLOAT
 %token<s> VAR
 %type<expr> expr
-%type<equals> equals
+//%type<equals> equals
 
 %union {
-    equals *Equals
+//    equals *Equals
     float float64
     s string
     expr Expression
@@ -26,11 +26,7 @@ var yyResult *Function
 
 %%
 input
-    : equals { yyResult = &Function{ Equals: $1 } }
-    ;
-
-equals
-    : expr '=' expr { $$ = &Equals { LHS: $1, RHS: $3 } }
+    : expr '=' expr { yyResult = &Function{ Equals: &Equals { LHS: $1, RHS: $3 } } }
     ;
 
 expr: FLOAT             { $$ = &Const{Value: $1} }

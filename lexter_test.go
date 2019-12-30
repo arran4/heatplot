@@ -14,12 +14,12 @@ func TestLexer(t *testing.T) {
 		{
 			Name:   "Run 1",
 			Input:  "1 + 2 * (3 / 4)",
-			Output: []int{FLOAT, yyToknameByString("'+'"), FLOAT, yyToknameByString("'*'"), yyToknameByString("'('"), FLOAT, yyToknameByString("'/'"), FLOAT, yyToknameByString("')'"), yyToknameByString("$end")},
+			Output: []int{FLOAT, int(rune('+')), FLOAT, int(rune('*')), int(rune('(')), FLOAT, int(rune('/')), FLOAT, int(rune(')')), yyToknameByString("$end")},
 		},
 		{
 			Name:   "Run 2",
 			Input:  "1 + 2 * (3 / 4) = Y",
-			Output: []int{FLOAT, yyToknameByString("'+'"), FLOAT, yyToknameByString("'*'"), yyToknameByString("'('"), FLOAT, yyToknameByString("'/'"), FLOAT, yyToknameByString("')'"), yyToknameByString("'='"), VAR, yyToknameByString("$end")},
+			Output: []int{FLOAT, int(rune('+')), FLOAT, int(rune('*')), int(rune('(')), FLOAT, int(rune('/')), FLOAT, int(rune(')')), int(rune('=')), VAR, yyToknameByString("$end")},
 		},
 	} {
 		t.Run(fmt.Sprintf("Test %d", eachI), func(t *testing.T) {

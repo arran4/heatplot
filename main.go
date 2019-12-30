@@ -210,6 +210,30 @@ func (v Power) String() string {
 	return fmt.Sprintf("(%s ^ %s)", v.LHS.String(), v.RHS.String())
 }
 
+type Negate struct {
+	Expr Expression
+}
+
+func (v Negate) Evaluate(state State) float64 {
+	return -v.Expr.Evaluate(state)
+}
+
+func (v Negate) String() string {
+	return fmt.Sprintf("-(%s)", v.Expr.String())
+}
+
+type Brackets struct {
+	Expr Expression
+}
+
+func (v Brackets) Evaluate(state State) float64 {
+	return v.Expr.Evaluate(state)
+}
+
+func (v Brackets) String() string {
+	return fmt.Sprintf("(%s)", v.Expr.String())
+}
+
 func main() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
 	if fnt, err := truetype.Parse(goregular.TTF); err != nil {

@@ -1,0 +1,299 @@
+
+state 0
+	$accept: .input $end 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 3
+	equals  goto 2
+	input  goto 1
+
+state 1
+	$accept:  input.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	input:  equals.    (1)
+
+	.  reduce 1 (src line 28)
+
+
+state 3
+	equals:  expr.'=' expr 
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+
+	'='  shift 9
+	'+'  shift 10
+	'-'  shift 11
+	'*'  shift 12
+	'/'  shift 13
+	'^'  shift 14
+	.  error
+
+
+state 4
+	expr:  FLOAT.    (3)
+
+	.  reduce 3 (src line 36)
+
+
+state 5
+	expr:  VAR.    (4)
+
+	.  reduce 4 (src line 37)
+
+
+state 6
+	expr:  '+'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 15
+
+state 7
+	expr:  '-'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 16
+
+state 8
+	expr:  '('.expr ')' 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 17
+
+state 9
+	equals:  expr '='.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 18
+
+state 10
+	expr:  expr '+'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 19
+
+state 11
+	expr:  expr '-'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 20
+
+state 12
+	expr:  expr '*'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 21
+
+state 13
+	expr:  expr '/'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 22
+
+state 14
+	expr:  expr '^'.expr 
+
+	FLOAT  shift 4
+	VAR  shift 5
+	'+'  shift 6
+	'-'  shift 7
+	'('  shift 8
+	.  error
+
+	expr  goto 23
+
+state 15
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+	expr:  '+' expr.    (10)
+
+	.  reduce 10 (src line 44)
+
+
+state 16
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+	expr:  '-' expr.    (11)
+
+	.  reduce 11 (src line 45)
+
+
+state 17
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+	expr:  '(' expr.')' 
+
+	'+'  shift 10
+	'-'  shift 11
+	'*'  shift 12
+	'/'  shift 13
+	'^'  shift 14
+	')'  shift 24
+	.  error
+
+
+state 18
+	equals:  expr '=' expr.    (2)
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+
+	'+'  shift 10
+	'-'  shift 11
+	'*'  shift 12
+	'/'  shift 13
+	'^'  shift 14
+	.  reduce 2 (src line 32)
+
+
+state 19
+	expr:  expr.'+' expr 
+	expr:  expr '+' expr.    (5)
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+
+	'*'  shift 12
+	'/'  shift 13
+	'^'  shift 14
+	.  reduce 5 (src line 38)
+
+
+state 20
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr '-' expr.    (6)
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+
+	'*'  shift 12
+	'/'  shift 13
+	'^'  shift 14
+	.  reduce 6 (src line 39)
+
+
+state 21
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr '*' expr.    (7)
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+
+	.  reduce 7 (src line 40)
+
+
+state 22
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr '/' expr.    (8)
+	expr:  expr.'^' expr 
+
+	.  reduce 8 (src line 41)
+
+
+state 23
+	expr:  expr.'+' expr 
+	expr:  expr.'-' expr 
+	expr:  expr.'*' expr 
+	expr:  expr.'/' expr 
+	expr:  expr.'^' expr 
+	expr:  expr '^' expr.    (9)
+
+	.  reduce 9 (src line 43)
+
+
+state 24
+	expr:  '(' expr ')'.    (12)
+
+	.  reduce 12 (src line 46)
+
+
+15 terminals, 4 nonterminals
+13 grammar rules, 25/8000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+53 working sets used
+memory: parser 11/120000
+19 extra closures
+73 shift entries, 1 exceptions
+12 goto entries
+0 entries saved by goto default
+Optimizer space used: output 45/120000
+45 table entries, 8 zero
+maximum spread: 15, maximum offset: 14

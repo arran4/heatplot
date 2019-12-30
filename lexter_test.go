@@ -16,6 +16,11 @@ func TestLexer(t *testing.T) {
 			Input:  "1 + 2 * (3 / 4)",
 			Output: []int{FLOAT, yyToknameByString("'+'"), FLOAT, yyToknameByString("'*'"), yyToknameByString("'('"), FLOAT, yyToknameByString("'/'"), FLOAT, yyToknameByString("')'"), yyToknameByString("$end")},
 		},
+		{
+			Name:   "Run 2",
+			Input:  "1 + 2 * (3 / 4) = Y",
+			Output: []int{FLOAT, yyToknameByString("'+'"), FLOAT, yyToknameByString("'*'"), yyToknameByString("'('"), FLOAT, yyToknameByString("'/'"), FLOAT, yyToknameByString("')'"), yyToknameByString("'='"), VAR, yyToknameByString("$end")},
+		},
 	} {
 		t.Run(fmt.Sprintf("Test %d", eachI), func(t *testing.T) {
 			yyLexer := NewCalcLexer(each.Input)

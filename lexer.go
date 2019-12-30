@@ -42,6 +42,7 @@ func (lex *CalcLexer) Lex(lval *yySymType) int {
 
 func (lex *CalcLexer) subLex(lval *yySymType) int {
 	rResult := calcLexerRegex.FindStringSubmatch(lex.input)
+	log.Printf("%v %v", lex.input, rResult)
 	defer func() {
 		if rResult == nil || len(rResult) <= 1 || len(rResult[0]) == 0 {
 			return

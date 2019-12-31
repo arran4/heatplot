@@ -35,6 +35,6 @@ func main() {
 		log.Panic(err)
 	}
 	defer w.Close()
-	heatPlot.RunFunction(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed, *footerText)
+	heatPlot.RunFunctionString(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed, *footerText)
 	log.Printf("Done see %s", *outputFile)
 }

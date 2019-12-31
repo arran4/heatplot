@@ -380,7 +380,12 @@ func init() {
 	}
 }
 
-func RunFunction(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration, footerText string) {
+func RunFunctionString(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration, footerText string) {
+	function := parseFunction(functionString)
+	RunFunction(function, w, size, timeLowerBound, timeUpperBound, scale, heatColourCount, pixelSize, speed, footerText)
+}
+
+func RunFunction(function *Function, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration, footerText string) {
 	plotSize := image.Rect(-size, -size, size, size)
 	colours := []color.Color{
 		lineColor,
@@ -391,7 +396,6 @@ func RunFunction(functionString string, w io.Writer, size, timeLowerBound, timeU
 	imgs := []*image.Paletted{}
 	delays := []int{}
 	tUsed := false
-	function := parseFunction(functionString)
 	for t := (timeLowerBound); t < (timeUpperBound) && tUsed || t == (timeLowerBound); t++ {
 		img := image.NewPaletted(plotSize, colours)
 		if err := paintWhite(img, plotSize); err != nil {

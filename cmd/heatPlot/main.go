@@ -17,6 +17,7 @@ var (
 	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
 	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
 	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
+	footerText      = flag.String("footerText", "http://github.com/arran4/", "Text to put at the bottom of the picture")
 )
 
 func init() {
@@ -34,6 +35,6 @@ func main() {
 		log.Panic(err)
 	}
 	defer w.Close()
-	heatPlot.RunFunction(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed)
+	heatPlot.RunFunction(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed, *footerText)
 	log.Printf("Done see %s", *outputFile)
 }

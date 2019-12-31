@@ -380,7 +380,7 @@ func init() {
 	}
 }
 
-func RunFunction(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration) {
+func RunFunction(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration, footerText string) {
 	plotSize := image.Rect(-size, -size, size, size)
 	colours := []color.Color{
 		lineColor,
@@ -390,25 +390,25 @@ func RunFunction(functionString string, w io.Writer, size, timeLowerBound, timeU
 	colours = append(colours, HeatColours(heatColourCount)...)
 	imgs := []*image.Paletted{}
 	delays := []int{}
-	TUsed := false
+	tUsed := false
 	function := parseFunction(functionString)
-	for t := (timeLowerBound); t < (timeUpperBound) && TUsed || t == (timeLowerBound); t++ {
+	for t := (timeLowerBound); t < (timeUpperBound) && tUsed || t == (timeLowerBound); t++ {
 		img := image.NewPaletted(plotSize, colours)
 		if err := paintWhite(img, plotSize); err != nil {
 			log.Panic(err)
 		}
 		var err error
-		if TUsed, err = plotFunction(img, plotSize, function, t, heatColourCount, pixelSize); err != nil {
+		if tUsed, err = plotFunction(img, plotSize, function, t, heatColourCount, pixelSize); err != nil {
 			log.Panic(err)
 		}
 		if err := drawPlane(img, plotSize); err != nil {
 			log.Panic(err)
 		}
 		img = FlipAndMoveImage(img)
-		if img, err = AddHeaderAndFooter(img, function, t, timeUpperBound); err != nil {
+		img = ScaleImage(img, scale)
+		if img, err = AddHeaderAndFooter(img, function, t, timeUpperBound, scale, tUsed, footerText); err != nil {
 			log.Panic(err)
 		}
-		img = ScaleImage(img, scale)
 		imgs = append(imgs, img)
 		delays = append(delays, int((speed)/(time.Millisecond*10)))
 	}
@@ -427,8 +427,8 @@ func parseFunction(arg string) *Function {
 	return yyResult
 }
 
-func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound int) (*image.Paletted, error) {
-	borderSizes := image.Pt(20, 20)
+func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string) (*image.Paletted, error) {
+	borderSizes := image.Pt(20*scale, 20*scale)
 	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, img.Rect.Max.X+borderSizes.X*2, img.Rect.Max.Y+borderSizes.Y*2)
 	result := image.NewPaletted(newRect, img.Palette)
 	if err := paintWhite(result, newRect); err != nil {
@@ -439,18 +439,24 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 			result.Set(x+borderSizes.X, y+borderSizes.Y, img.At(x, y))
 		}
 	}
-	if err := AddText(fmt.Sprintf("%s", function.String()), result, newRect.Min.X, newRect.Min.Y+borderSizes.Y); err != nil {
+	if err := AddText(fmt.Sprintf("%s", function.String()), result, newRect.Min.X+10, newRect.Min.Y+borderSizes.Y, scale); err != nil {
 		return nil, err
 	}
-	if err := AddText(fmt.Sprintf("T: %d/%d - https://github.com/arran4/", t, (timeUpperBound)), result, newRect.Min.X, newRect.Max.Y-10); err != nil {
-		return nil, err
+	if tUsed {
+		if err := AddText(fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := AddText(fmt.Sprintf("%s", footerText), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
-func AddText(s string, img *image.Paletted, x int, y int) error {
+func AddText(s string, img *image.Paletted, x, y, scale int) error {
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
-		Size:       12 * 2,
+		Size:       12 * 2 * float64(scale),
 		DPI:        40,
 		Hinting:    0,
 		SubPixelsX: 0,

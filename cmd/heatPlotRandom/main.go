@@ -19,7 +19,7 @@ var (
 	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
 	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
 	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
-	footerText      = flag.String("footerText", "Random run", "Text to put at the bottom of the picture")
+	footerText      = flag.String("footerText", "RND", "Text to put at the bottom of the picture")
 )
 
 func init() {
@@ -58,17 +58,17 @@ func randomExpr() heatPlot.Expression {
 	vs := []func() heatPlot.Expression{
 		randomConstNumber,
 		randomVar,
-		randomPlus,
-		randomSubtract,
-		randomMultiply,
-		randomDivide,
-		randomPower,
-		randomModulus,
-		randomNegate,
-		randomBrackets,
+		//randomPlus,
+		//randomSubtract,
+		//randomMultiply,
+		//randomDivide,
+		//randomPower,
+		//randomModulus,
+		//randomNegate,
+		//randomBrackets,
 		randomActualFunction,
 	}
-	return vs[rand.Intn(len(vs)-1)]()
+	return vs[rand.Intn(len(vs))]()
 }
 
 func randomConstNumber() heatPlot.Expression {
@@ -79,7 +79,7 @@ func randomConstNumber() heatPlot.Expression {
 
 func randomVar() heatPlot.Expression {
 	vs := []string{"X", "Y", "T"}
-	v := vs[rand.Intn(len(vs)-1)]
+	v := vs[rand.Intn(len(vs))]
 	return &heatPlot.Var{
 		Var: v,
 	}
@@ -140,7 +140,7 @@ func randomBrackets() heatPlot.Expression {
 }
 
 func randomActualFunction() heatPlot.Expression {
-	functionName := heatPlot.FunctionNames[rand.Intn(len(heatPlot.FunctionNames)-1)]
+	functionName := heatPlot.FunctionNames[rand.Intn(len(heatPlot.FunctionNames))]
 	if _, ok := heatPlot.SingleFunctions[functionName]; ok {
 		return randomSingleFunction(functionName)
 	}

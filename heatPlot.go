@@ -357,6 +357,11 @@ func (v Negate) Simplify() Expression {
 	if nn, ok := v.Expr.(*Negate); ok {
 		return nn.Expr.Simplify()
 	}
+	if nb, ok := v.Expr.(*Brackets); ok {
+		if nn, ok := nb.Expr.(*Negate); ok {
+			return nn.Expr.Simplify()
+		}
+	}
 	v.Expr = v.Expr.Simplify()
 	return v
 }

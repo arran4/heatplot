@@ -3,10 +3,11 @@ package main
 import (
 	"bitbucket.org/arran4/heatplot"
 	"flag"
+	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"time"
-	"math/rand"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
 	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
 	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
-	footerText      = flag.String("footerText", "http://github.com/arran4/", "Text to put at the bottom of the picture")
+	footerText      = flag.String("footerText", "Random run", "Text to put at the bottom of the picture")
 )
 
 func init() {
@@ -26,7 +27,8 @@ func init() {
 }
 
 func main() {
-	rand.Seed(time.Now().Unix())
+	seed := time.Now().UnixNano()
+	rand.Seed(seed)
 	flag.Parse()
 	w, err := os.OpenFile(*outputFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -35,65 +37,48 @@ func main() {
 	defer w.Close()
 	function := randomFunction()
 	log.Printf("Creating function: %s", function.String())
-	heatPlot.RunFunction(function, w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed, *footerText)
+	heatPlot.RunFunction(function, w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed, fmt.Sprintf("%s seed: %d", *footerText, seed))
 	log.Printf("Done see %s", *outputFile)
 }
 
 func randomFunction() *heatPlot.Function {
-	return &heatPlot.Function {
+	return &heatPlot.Function{
 		Equals: randomEquals(),
 	}
 }
 
 func randomEquals() *heatPlot.Equals {
-	return &heatPlot.Equals {
+	return &heatPlot.Equals{
 		RHS: randomExpr(),
 		LHS: randomExpr(),
 	}
 }
 
 func randomExpr() heatPlot.Expression {
-	vs := []func () heatPlot.Expression {
+	vs := []func() heatPlot.Expression{
 		randomConstNumber,
-		randomConstNumber,
-		randomConstNumber,
-		randomConstNumber,
-		randomConstNumber,
-		randomConstNumber,
-		randomConstNumber,
-		randomConstNumber,
-		randomVar,
-		randomVar,
-		randomVar,
 		randomVar,
 		randomPlus,
-		randomPlus,
-		randomSubtract,
 		randomSubtract,
 		randomMultiply,
-		randomMultiply,
 		randomDivide,
-		randomDivide,
-		randomPower,
 		randomPower,
 		randomModulus,
 		randomNegate,
-		randomNegate,
-		randomNegate,
 		randomBrackets,
-
+		randomActualFunction,
 	}
 	return vs[rand.Intn(len(vs)-1)]()
 }
 
 func randomConstNumber() heatPlot.Expression {
 	return &heatPlot.Const{
-		Value: rand.Float64() * (100),
+		Value: float64(rand.Intn(400)) / 4.0,
 	}
 }
 
 func randomVar() heatPlot.Expression {
-	vs := []string{"X","Y","T"}
+	vs := []string{"X", "Y", "T"}
 	v := vs[rand.Intn(len(vs)-1)]
 	return &heatPlot.Var{
 		Var: v,
@@ -148,29 +133,32 @@ func randomNegate() heatPlot.Expression {
 	}
 }
 
-
 func randomBrackets() heatPlot.Expression {
 	return &heatPlot.Negate{
 		Expr: randomExpr(),
 	}
 }
 
-func randomSingleFunction(name string) func () heatPlot.Expression {
-	return func () heatPlot.Expression {
-		return &heatPlot.SingleFunction{
-			Name: name,
-			Expr: randomExpr(),
-		}
+func randomActualFunction() heatPlot.Expression {
+	functionName := heatPlot.FunctionNames[rand.Intn(len(heatPlot.FunctionNames)-1)]
+	if _, ok := heatPlot.SingleFunctions[functionName]; ok {
+		return randomSingleFunction(functionName)
+	}
+	return randomDoubleFunction(functionName)
+}
+
+func randomSingleFunction(name string) heatPlot.Expression {
+	return &heatPlot.SingleFunction{
+		Name: name,
+		Expr: randomExpr(),
 	}
 }
 
-func randomDoubleFunction(name string) func () heatPlot.Expression {
-	return func () heatPlot.Expression {
-		return &heatPlot.DoubleFunction{
-			Expr1: randomExpr(),
-			Expr2: randomExpr(),
-			Infix: rand.Intn(2)==0,
-			Name: name,
-		}
+func randomDoubleFunction(name string) heatPlot.Expression {
+	return &heatPlot.DoubleFunction{
+		Expr1: randomExpr(),
+		Expr2: randomExpr(),
+		Infix: rand.Intn(2) == 0,
+		Name:  name,
 	}
 }

@@ -24,8 +24,14 @@ var (
 		B: 0x0F,
 		A: 0xFF,
 	}
-	goregularfnt *truetype.Font
+	goregularfnt    *truetype.Font
+	SingleFunctions map[string]SingleFunctionDef
+	DoubleFunctions map[string]DoubleFunctionDef
+	FunctionNames   []string
 )
+
+type SingleFunctionDef func(float64) float64
+type DoubleFunctionDef func(float64, float64) float64
 
 type State interface {
 	CurX() float64
@@ -244,81 +250,8 @@ type SingleFunction struct {
 
 func (v SingleFunction) Evaluate(state State) float64 {
 	var r = v.Expr.Evaluate(state)
-	switch strings.ToUpper(v.Name) {
-	case "ABS":
-		r = math.Abs(r)
-	case "ACOS":
-		r = math.Acos(r)
-	case "ACOSH":
-		r = math.Acosh(r)
-	case "ASIN":
-		r = math.Asin(r)
-	case "ASINH":
-		r = math.Asinh(r)
-	case "ATAN":
-		r = math.Atan(r)
-	case "ATANH":
-		r = math.Atanh(r)
-	case "CBRT":
-		r = math.Cbrt(r)
-	case "CEIL":
-		r = math.Ceil(r)
-	case "COS":
-		r = math.Cos(r)
-	case "COSH":
-		r = math.Cosh(r)
-	case "ERF":
-		r = math.Erf(r)
-	case "ERFC":
-		r = math.Erfc(r)
-	case "ERFCINV":
-		r = math.Erfcinv(r)
-	case "ERFINV":
-		r = math.Erfinv(r)
-	case "EXP":
-		r = math.Exp(r)
-	case "EXP2":
-		r = math.Exp2(r)
-	case "EXPM1":
-		r = math.Expm1(r)
-	case "FLOOR":
-		r = math.Floor(r)
-	case "GAMMA":
-		r = math.Gamma(r)
-	case "J0":
-		r = math.J0(r)
-	case "J1":
-		r = math.J1(r)
-	case "LOG":
-		r = math.Log(r)
-	case "LOG10":
-		r = math.Log10(r)
-	case "LOG1P":
-		r = math.Log1p(r)
-	case "LOG2":
-		r = math.Log2(r)
-	case "LOGB":
-		r = math.Logb(r)
-	case "ROUND":
-		r = math.Round(r)
-	case "ROUNDTOEVEN":
-		r = math.RoundToEven(r)
-	case "SIN":
-		r = math.Sin(r)
-	case "SINH":
-		r = math.Sinh(r)
-	case "SQRT":
-		r = math.Sqrt(r)
-	case "TAN":
-		r = math.Tan(r)
-	case "TANH":
-		r = math.Tanh(r)
-	case "TRUNC":
-		r = math.Trunc(r)
-	case "Y0":
-		r = math.Y0(r)
-	case "Y1":
-		r = math.Y1(r)
+	if f, ok := SingleFunctions[strings.ToUpper(v.Name)]; ok {
+		r = f(r)
 	}
 	return r
 }
@@ -337,29 +270,8 @@ type DoubleFunction struct {
 func (v DoubleFunction) Evaluate(state State) float64 {
 	var r1 = v.Expr1.Evaluate(state)
 	var r2 = v.Expr2.Evaluate(state)
-	switch strings.ToUpper(v.Name) {
-	case "ATAN2":
-		r1 = math.Atan2(r1, r2)
-	case "COPYSIGN":
-		r1 = math.Copysign(r1, r2)
-	case "HYPOT":
-		r1 = math.Hypot(r1, r2)
-	case "NEXTAFTER":
-		r1 = math.Nextafter(r1, r2)
-	case "POW":
-		r1 = math.Pow(r1, r2)
-	case "LDEXP":
-		r1 = math.Ldexp(r1, int(r2))
-	case "MAX":
-		r1 = math.Max(r1, r2)
-	case "MIN":
-		r1 = math.Min(r1, r2)
-	case "MOD":
-		r1 = math.Mod(r1, r2)
-	case "REMAINDER":
-		r1 = math.Remainder(r1, r2)
-	case "DIM":
-		r1 = math.Dim(r1, r2)
+	if f, ok := DoubleFunctions[strings.ToUpper(v.Name)]; ok {
+		r1 = f(r1, r2)
 	}
 	return r1
 }
@@ -377,6 +289,103 @@ func init() {
 		log.Panic(err)
 	} else {
 		goregularfnt = fnt
+	}
+	SingleFunctions = map[string]SingleFunctionDef{}
+	DoubleFunctions = map[string]DoubleFunctionDef{}
+	FunctionNames = []string{}
+	for name, f := range map[string]interface{}{
+		"Abs":             math.Abs,
+		"Acos":            math.Acos,
+		"Acosh":           math.Acosh,
+		"Asin":            math.Asin,
+		"Asinh":           math.Asinh,
+		"Atan":            math.Atan,
+		"Atan2":           math.Atan2,
+		"Atanh":           math.Atanh,
+		"Cbrt":            math.Cbrt,
+		"Ceil":            math.Ceil,
+		"Copysign":        math.Copysign,
+		"Cos":             math.Cos,
+		"Cosh":            math.Cosh,
+		"Dim":             math.Dim,
+		"Erf":             math.Erf,
+		"Erfc":            math.Erfc,
+		"Erfcinv":         math.Erfcinv,
+		"Erfinv":          math.Erfinv,
+		"Exp":             math.Exp,
+		"Exp2":            math.Exp2,
+		"Expm1":           math.Expm1,
+		"Float32bits":     math.Float32bits,
+		"Float32frombits": math.Float32frombits,
+		"Float64bits":     math.Float64bits,
+		"Float64frombits": math.Float64frombits,
+		"Floor":           math.Floor,
+		"Frexp":           math.Frexp,
+		"Gamma":           math.Gamma,
+		"Hypot":           math.Hypot,
+		"Ilogb":           math.Ilogb,
+		"Inf":             math.Inf,
+		"IsInf":           math.IsInf,
+		"IsNaN":           math.IsNaN,
+		"J0":              math.J0,
+		"J1":              math.J1,
+		"Jn":              math.Jn,
+		"Ldexp":           math.Ldexp,
+		"Lgamma":          math.Lgamma,
+		"Log":             math.Log,
+		"Log10":           math.Log10,
+		"Log1p":           math.Log1p,
+		"Log2":            math.Log2,
+		"Logb":            math.Logb,
+		"Max":             math.Max,
+		"Min":             math.Min,
+		"Mod":             math.Mod,
+		"Modf":            math.Modf,
+		"NaN":             math.NaN,
+		"Nextafter":       math.Nextafter,
+		"Nextafter32":     math.Nextafter32,
+		"Pow":             math.Pow,
+		"Pow10":           math.Pow10,
+		"Remainder":       math.Remainder,
+		"Round":           math.Round,
+		"RoundToEven":     math.RoundToEven,
+		"Signbit":         math.Signbit,
+		"Sin":             math.Sin,
+		"Sincos":          math.Sincos,
+		"Sinh":            math.Sinh,
+		"Sqrt":            math.Sqrt,
+		"Tan":             math.Tan,
+		"Tanh":            math.Tanh,
+		"Trunc":           math.Trunc,
+		"Y0":              math.Y0,
+		"Y1":              math.Y1,
+		"Yn":              math.Yn,
+	} {
+		switch f := f.(type) {
+		case SingleFunctionDef:
+			SingleFunctions[strings.ToUpper(name)] = f
+		case DoubleFunctionDef:
+			DoubleFunctions[strings.ToUpper(name)] = f
+		case func(int, float64) float64:
+			DoubleFunctions[strings.ToUpper(name)] = func(f1 float64, f2 float64) float64 {
+				return f(int(f1), f2)
+			}
+		case func(float64, int) float64:
+			DoubleFunctions[strings.ToUpper(name)] = func(f1 float64, f2 float64) float64 {
+				return f(f1, int(f2))
+			}
+		case func(int) float64:
+			SingleFunctions[strings.ToUpper(name)] = func(f1 float64) float64 {
+				return f(int(f1))
+			}
+		case func(float64) int:
+			SingleFunctions[strings.ToUpper(name)] = func(f1 float64) float64 {
+				return float64(f(f1))
+			}
+		default:
+			continue
+		}
+		FunctionNames = append(FunctionNames, name)
 	}
 }
 

@@ -447,9 +447,9 @@ func init() {
 		"Yn":              math.Yn,
 	} {
 		switch f := f.(type) {
-		case SingleFunctionDef:
+		case func(float64) float64:
 			SingleFunctions[strings.ToUpper(name)] = f
-		case DoubleFunctionDef:
+		case func(float64, float64) float64:
 			DoubleFunctions[strings.ToUpper(name)] = f
 		case func(int, float64) float64:
 			DoubleFunctions[strings.ToUpper(name)] = func(f1 float64, f2 float64) float64 {

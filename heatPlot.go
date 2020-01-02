@@ -396,7 +396,7 @@ func ParseRunAndDrawFunction(functionString string, w io.Writer, size, timeLower
 
 func (function *Function) PlotAndDraw(w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pointSize float64, speed time.Duration, footerText string) {
 	plotSize := image.Rect(-size, -size, size, size)
-	tUsed, plots, _ := function.Plot(timeLowerBound, timeUpperBound, plotSize, pointSize)
+	tUsed, plots := function.Plot(timeLowerBound, timeUpperBound, plotSize, pointSize)
 	RenderPlots(heatColourCount, plots, plotSize, scale, function, timeUpperBound, tUsed, footerText, speed, w)
 }
 
@@ -437,14 +437,13 @@ func RenderPlots(heatColourCount int, plots []*Plot, plotSize image.Rectangle, s
 	}
 }
 
-func (function *Function) Plot(timeLowerBound int, timeUpperBound int, plotSize image.Rectangle, pointSize float64) (tUsed bool, plots []*Plot, setCount int) {
+func (function *Function) Plot(timeLowerBound int, timeUpperBound int, plotSize image.Rectangle, pointSize float64) (tUsed bool, plots []*Plot) {
 	for t := (timeLowerBound); t < (timeUpperBound) && tUsed || t == (timeLowerBound); t++ {
 		var err error
 		var plot *Plot
 		if plot, tUsed, err = function.PlotForT(plotSize, t, pointSize); err != nil {
 			log.Panic(err)
 		}
-		setCount += plot.Sets
 		plots = append(plots, plot)
 	}
 	return

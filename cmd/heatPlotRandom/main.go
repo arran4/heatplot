@@ -38,13 +38,29 @@ func main() {
 	defer w.Close()
 	for {
 		function := randomFunction()
-		log.Printf("Creating function: %s", function.String())
+		log.Printf("Got function: %s", function.String())
 		plotSize := image.Rect(-*size, -*size, *size, *size)
-		tUsed, plots, setCount := function.Plot(*timeLowerBound, *timeUpperBound, plotSize, *pointSize)
-		if float64(setCount) < float64(len(plots)*plotSize.Dx()*plotSize.Dy())*0.01 {
-			log.Printf("Less than 1%% change trying again.")
+		tUsed, plots := function.Plot(*timeLowerBound, *timeUpperBound, plotSize, *pointSize)
+		setCount, usedFrames := 0, 0
+		for _, plot := range plots {
+			setCount += plot.Sets
+			if plot.Sets > 0 {
+				usedFrames++
+			}
+		}
+		if usedFrames < len(plots)/2 {
+			log.Printf("Too few frames used, less than 50%%")
 			continue
 		}
+		if float64(setCount) < float64(len(plots)*plotSize.Dx()*plotSize.Dy())*0.01 {
+			log.Printf("Less than 1%% of all frames used trying again.")
+			continue
+		}
+		if float64(setCount) > float64(len(plots)*plotSize.Dx()*plotSize.Dy())*0.90 {
+			log.Printf("More than 90%% of all frames used trying again.")
+			continue
+		}
+		log.Printf("looks good making image")
 		heatPlot.RenderPlots(*heatColourCount, plots, plotSize, *scale, function, *timeUpperBound, tUsed, *footerText, *speed, w)
 		function.PlotAndDraw(w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pointSize, *speed, fmt.Sprintf("%s seed: %d", *footerText, seed))
 		log.Printf("Done see %s", *outputFile)

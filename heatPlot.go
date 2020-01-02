@@ -13,7 +13,6 @@ import (
 	"io"
 	"log"
 	"math"
-	"reflect"
 	"strings"
 	"time"
 )
@@ -64,6 +63,7 @@ func (rs *RealState) CurT() int {
 type Expression interface {
 	Evaluate(state State) float64
 	String() string
+	Depth() int
 }
 
 type Function struct {
@@ -105,6 +105,14 @@ func (v Equals) Evaluate(state State) float64 {
 	return v.RHS.Evaluate(state) - v.LHS.Evaluate(state)
 }
 
+func (v Equals) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
+}
+
 func (v Equals) String() string {
 	return fmt.Sprintf("%s = %s", v.LHS.String(), v.RHS.String())
 }
@@ -126,6 +134,10 @@ func (v Var) Evaluate(state State) float64 {
 	}
 }
 
+func (v Var) Depth() int {
+	return 1
+}
+
 func (v Var) String() string {
 	return v.Var
 }
@@ -142,6 +154,10 @@ func (v Const) String() string {
 	return fmt.Sprintf("%g", v.Value)
 }
 
+func (v Const) Depth() int {
+	return 1
+}
+
 type Plus struct {
 	LHS Expression
 	RHS Expression
@@ -153,6 +169,14 @@ func (v Plus) Evaluate(state State) float64 {
 
 func (v Plus) String() string {
 	return fmt.Sprintf("%s + %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Plus) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
 }
 
 type Subtract struct {
@@ -168,6 +192,14 @@ func (v Subtract) String() string {
 	return fmt.Sprintf("%s - %s", v.LHS.String(), v.RHS.String())
 }
 
+func (v Subtract) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
+}
+
 type Multiply struct {
 	LHS Expression
 	RHS Expression
@@ -179,6 +211,14 @@ func (v Multiply) Evaluate(state State) float64 {
 
 func (v Multiply) String() string {
 	return fmt.Sprintf("%s * %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Multiply) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
 }
 
 type Divide struct {
@@ -194,6 +234,14 @@ func (v Divide) String() string {
 	return fmt.Sprintf("%s / %s", v.LHS.String(), v.RHS.String())
 }
 
+func (v Divide) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
+}
+
 type Power struct {
 	LHS Expression
 	RHS Expression
@@ -205,6 +253,14 @@ func (v Power) Evaluate(state State) float64 {
 
 func (v Power) String() string {
 	return fmt.Sprintf("%s ^ %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Power) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
 }
 
 type Modulus struct {
@@ -220,6 +276,14 @@ func (v Modulus) String() string {
 	return fmt.Sprintf("%s %% %s", v.LHS.String(), v.RHS.String())
 }
 
+func (v Modulus) Depth() int {
+	l, r := v.LHS.Depth(), v.RHS.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
+}
+
 type Negate struct {
 	Expr Expression
 }
@@ -232,6 +296,10 @@ func (v Negate) String() string {
 	return fmt.Sprintf("-(%s)", v.Expr.String())
 }
 
+func (v Negate) Depth() int {
+	return v.Expr.Depth() + 1
+}
+
 type Brackets struct {
 	Expr Expression
 }
@@ -242,6 +310,10 @@ func (v Brackets) Evaluate(state State) float64 {
 
 func (v Brackets) String() string {
 	return fmt.Sprintf("(%s)", v.Expr.String())
+}
+
+func (v Brackets) Depth() int {
+	return v.Expr.Depth() + 1
 }
 
 type SingleFunction struct {
@@ -259,6 +331,10 @@ func (v SingleFunction) Evaluate(state State) float64 {
 
 func (v SingleFunction) String() string {
 	return fmt.Sprintf("%s(%s)", v.Name, v.Expr.String())
+}
+
+func (v SingleFunction) Depth() int {
+	return v.Expr.Depth() + 1
 }
 
 type DoubleFunction struct {
@@ -283,6 +359,14 @@ func (v DoubleFunction) String() string {
 	} else {
 		return fmt.Sprintf("%s(%s, %s)", v.Name, v.Expr1.String(), v.Expr2.String())
 	}
+}
+
+func (v DoubleFunction) Depth() int {
+	l, r := v.Expr1.Depth(), v.Expr2.Depth()
+	if l > r {
+		return l + 1
+	}
+	return r + 1
 }
 
 func init() {
@@ -571,7 +655,18 @@ func (plot *Plot) GetPos(x int, y int) int {
 }
 
 func (plot *Plot) Equals(plot2 *Plot) bool {
-	return reflect.DeepEqual(plot, plot2)
+	if plot == nil || plot2 == nil {
+		return plot == plot2
+	}
+	if len(plot.Values) != len(plot2.Values) {
+		return false
+	}
+	for i := range plot.Values {
+		if plot.Values[i] != plot2.Values[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func (function *Function) PlotForT(size image.Rectangle, t int, pointSize float64) (plot *Plot, TUsed bool, err error) {
@@ -591,6 +686,10 @@ func (function *Function) PlotForT(size image.Rectangle, t int, pointSize float6
 		}
 	}
 	return
+}
+
+func (v Function) Depth() int {
+	return v.Equals.Depth()
 }
 
 func HeatColours(heatColourCount int) []color.Color {

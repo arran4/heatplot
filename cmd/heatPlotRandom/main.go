@@ -37,8 +37,21 @@ func main() {
 	}
 	defer w.Close()
 	for {
-		function := randomFunction()
+		function := randomFunction(10)
+		if function == nil {
+			log.Printf("Nil function? Retry")
+			continue
+		}
 		log.Printf("Got function: %s", function.String())
+		depth := function.Depth()
+		if depth < 3 {
+			log.Printf("Not deep enough")
+			continue
+		}
+		if depth > 10 {
+			log.Printf("Too deep")
+			continue
+		}
 		plotSize := image.Rect(-*size, -*size, *size, *size)
 		tUsed, plots := function.Plot(*timeLowerBound, *timeUpperBound, plotSize, *pointSize)
 		setCount, usedFrames, frameChanges := 0, 0, 0
@@ -75,43 +88,46 @@ func main() {
 	}
 }
 
-func randomFunction() *heatPlot.Function {
+func randomFunction(d int) *heatPlot.Function {
 	return &heatPlot.Function{
-		Equals: randomEquals(),
+		Equals: randomEquals(d),
 	}
 }
 
-func randomEquals() *heatPlot.Equals {
+func randomEquals(d int) *heatPlot.Equals {
 	return &heatPlot.Equals{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomExpr() heatPlot.Expression {
-	vs := []func() heatPlot.Expression{
+func randomExpr(d int) heatPlot.Expression {
+	if d <= 0 {
+		return randomVar(0)
+	}
+	vs := []func(d int) heatPlot.Expression{
 		randomConstNumber,
 		randomVar,
-		//randomPlus,
-		//randomSubtract,
-		//randomMultiply,
-		//randomDivide,
-		//randomPower,
-		//randomModulus,
-		//randomNegate,
-		//randomBrackets,
+		randomPlus,
+		randomSubtract,
+		randomMultiply,
+		randomDivide,
+		randomPower,
+		randomModulus,
+		randomNegate,
+		randomBrackets,
 		randomActualFunction,
 	}
-	return vs[rand.Intn(len(vs))]()
+	return vs[rand.Intn(len(vs))](d - 1)
 }
 
-func randomConstNumber() heatPlot.Expression {
+func randomConstNumber(d int) heatPlot.Expression {
 	return &heatPlot.Const{
 		Value: float64(rand.Intn(400)) / 4.0,
 	}
 }
 
-func randomVar() heatPlot.Expression {
+func randomVar(d int) heatPlot.Expression {
 	vs := []string{"X", "Y", "T"}
 	v := vs[rand.Intn(len(vs))]
 	return &heatPlot.Var{
@@ -119,79 +135,79 @@ func randomVar() heatPlot.Expression {
 	}
 }
 
-func randomPlus() heatPlot.Expression {
+func randomPlus(d int) heatPlot.Expression {
 	return &heatPlot.Plus{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomSubtract() heatPlot.Expression {
+func randomSubtract(d int) heatPlot.Expression {
 	return &heatPlot.Subtract{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomMultiply() heatPlot.Expression {
+func randomMultiply(d int) heatPlot.Expression {
 	return &heatPlot.Multiply{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomDivide() heatPlot.Expression {
+func randomDivide(d int) heatPlot.Expression {
 	return &heatPlot.Divide{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomPower() heatPlot.Expression {
+func randomPower(d int) heatPlot.Expression {
 	return &heatPlot.Power{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomModulus() heatPlot.Expression {
+func randomModulus(d int) heatPlot.Expression {
 	return &heatPlot.Modulus{
-		RHS: randomExpr(),
-		LHS: randomExpr(),
+		RHS: randomExpr(d),
+		LHS: randomExpr(d),
 	}
 }
 
-func randomNegate() heatPlot.Expression {
+func randomNegate(d int) heatPlot.Expression {
 	return &heatPlot.Negate{
-		Expr: randomExpr(),
+		Expr: randomExpr(d),
 	}
 }
 
-func randomBrackets() heatPlot.Expression {
+func randomBrackets(d int) heatPlot.Expression {
 	return &heatPlot.Negate{
-		Expr: randomExpr(),
+		Expr: randomExpr(d),
 	}
 }
 
-func randomActualFunction() heatPlot.Expression {
+func randomActualFunction(d int) heatPlot.Expression {
 	functionName := heatPlot.FunctionNames[rand.Intn(len(heatPlot.FunctionNames))]
 	if _, ok := heatPlot.SingleFunctions[functionName]; ok {
-		return randomSingleFunction(functionName)
+		return randomSingleFunction(functionName, d)
 	}
-	return randomDoubleFunction(functionName)
+	return randomDoubleFunction(functionName, d)
 }
 
-func randomSingleFunction(name string) heatPlot.Expression {
+func randomSingleFunction(name string, d int) heatPlot.Expression {
 	return &heatPlot.SingleFunction{
 		Name: name,
-		Expr: randomExpr(),
+		Expr: randomExpr(d),
 	}
 }
 
-func randomDoubleFunction(name string) heatPlot.Expression {
+func randomDoubleFunction(name string, d int) heatPlot.Expression {
 	return &heatPlot.DoubleFunction{
-		Expr1: randomExpr(),
-		Expr2: randomExpr(),
+		Expr1: randomExpr(d),
+		Expr2: randomExpr(d),
 		Infix: rand.Intn(2) == 0,
 		Name:  name,
 	}

@@ -64,6 +64,7 @@ type Expression interface {
 	Evaluate(state State) float64
 	String() string
 	Depth() int
+	Simplify() Expression
 }
 
 type Function struct {
@@ -96,6 +97,12 @@ func (v Function) String() string {
 	return v.Equals.String()
 }
 
+func (v Function) Simplify() *Function {
+	e := v.Equals.Simplify().(Equals)
+	v.Equals = &e
+	return &v
+}
+
 type Equals struct {
 	LHS Expression
 	RHS Expression
@@ -115,6 +122,12 @@ func (v Equals) Depth() int {
 
 func (v Equals) String() string {
 	return fmt.Sprintf("%s = %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Equals) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
 }
 
 type Var struct {
@@ -142,6 +155,10 @@ func (v Var) String() string {
 	return v.Var
 }
 
+func (v Var) Simplify() Expression {
+	return v
+}
+
 type Const struct {
 	Value float64
 }
@@ -152,6 +169,10 @@ func (c Const) Evaluate(state State) float64 {
 
 func (v Const) String() string {
 	return fmt.Sprintf("%g", v.Value)
+}
+
+func (v Const) Simplify() Expression {
+	return v
 }
 
 func (v Const) Depth() int {
@@ -169,6 +190,12 @@ func (v Plus) Evaluate(state State) float64 {
 
 func (v Plus) String() string {
 	return fmt.Sprintf("%s + %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Plus) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
 }
 
 func (v Plus) Depth() int {
@@ -192,6 +219,12 @@ func (v Subtract) String() string {
 	return fmt.Sprintf("%s - %s", v.LHS.String(), v.RHS.String())
 }
 
+func (v Subtract) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
+}
+
 func (v Subtract) Depth() int {
 	l, r := v.LHS.Depth(), v.RHS.Depth()
 	if l > r {
@@ -211,6 +244,12 @@ func (v Multiply) Evaluate(state State) float64 {
 
 func (v Multiply) String() string {
 	return fmt.Sprintf("%s * %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Multiply) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
 }
 
 func (v Multiply) Depth() int {
@@ -234,6 +273,12 @@ func (v Divide) String() string {
 	return fmt.Sprintf("%s / %s", v.LHS.String(), v.RHS.String())
 }
 
+func (v Divide) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
+}
+
 func (v Divide) Depth() int {
 	l, r := v.LHS.Depth(), v.RHS.Depth()
 	if l > r {
@@ -253,6 +298,12 @@ func (v Power) Evaluate(state State) float64 {
 
 func (v Power) String() string {
 	return fmt.Sprintf("%s ^ %s", v.LHS.String(), v.RHS.String())
+}
+
+func (v Power) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
 }
 
 func (v Power) Depth() int {
@@ -276,6 +327,12 @@ func (v Modulus) String() string {
 	return fmt.Sprintf("%s %% %s", v.LHS.String(), v.RHS.String())
 }
 
+func (v Modulus) Simplify() Expression {
+	v.RHS = v.RHS.Simplify()
+	v.LHS = v.LHS.Simplify()
+	return v
+}
+
 func (v Modulus) Depth() int {
 	l, r := v.LHS.Depth(), v.RHS.Depth()
 	if l > r {
@@ -296,6 +353,14 @@ func (v Negate) String() string {
 	return fmt.Sprintf("-(%s)", v.Expr.String())
 }
 
+func (v Negate) Simplify() Expression {
+	if nn, ok := v.Expr.(*Negate); ok {
+		return nn.Expr.Simplify()
+	}
+	v.Expr = v.Expr.Simplify()
+	return v
+}
+
 func (v Negate) Depth() int {
 	return v.Expr.Depth() + 1
 }
@@ -310,6 +375,11 @@ func (v Brackets) Evaluate(state State) float64 {
 
 func (v Brackets) String() string {
 	return fmt.Sprintf("(%s)", v.Expr.String())
+}
+
+func (v Brackets) Simplify() Expression {
+	v.Expr = v.Expr.Simplify()
+	return v
 }
 
 func (v Brackets) Depth() int {
@@ -331,6 +401,11 @@ func (v SingleFunction) Evaluate(state State) float64 {
 
 func (v SingleFunction) String() string {
 	return fmt.Sprintf("%s(%s)", v.Name, v.Expr.String())
+}
+
+func (v SingleFunction) Simplify() Expression {
+	v.Expr = v.Expr.Simplify()
+	return v
 }
 
 func (v SingleFunction) Depth() int {
@@ -359,6 +434,12 @@ func (v DoubleFunction) String() string {
 	} else {
 		return fmt.Sprintf("%s(%s, %s)", v.Name, v.Expr1.String(), v.Expr2.String())
 	}
+}
+
+func (v DoubleFunction) Simplify() Expression {
+	v.Expr1 = v.Expr1.Simplify()
+	v.Expr2 = v.Expr2.Simplify()
+	return v
 }
 
 func (v DoubleFunction) Depth() int {

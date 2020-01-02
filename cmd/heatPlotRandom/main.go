@@ -42,7 +42,14 @@ func main() {
 			log.Printf("Nil function? Retry")
 			continue
 		}
-		log.Printf("Got function: %s", function.String())
+		fstr := function.String()
+		function = function.Simplify()
+		fstrSimplified := function.String()
+		if fstrSimplified == fstr {
+			log.Printf("Got function: %s", fstr)
+		} else {
+			log.Printf("Got function: %s simplified from: %s", fstrSimplified, fstr)
+		}
 		depth := function.Depth()
 		if depth <= 3 {
 			log.Printf("Not deep enough")

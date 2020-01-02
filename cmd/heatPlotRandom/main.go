@@ -44,7 +44,7 @@ func main() {
 		}
 		log.Printf("Got function: %s", function.String())
 		depth := function.Depth()
-		if depth < 3 {
+		if depth <= 3 {
 			log.Printf("Not deep enough")
 			continue
 		}

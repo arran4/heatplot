@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/arran4/heatplot"
 	"flag"
 	"fmt"
+	"image"
 	"log"
 	"math/rand"
 	"os"
@@ -35,10 +36,20 @@ func main() {
 		log.Panic(err)
 	}
 	defer w.Close()
-	function := randomFunction()
-	log.Printf("Creating function: %s", function.String())
-	heatPlot.RunAndDrawFunction(function, w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pointSize, *speed, fmt.Sprintf("%s seed: %d", *footerText, seed))
-	log.Printf("Done see %s", *outputFile)
+	for {
+		function := randomFunction()
+		log.Printf("Creating function: %s", function.String())
+		plotSize := image.Rect(-*size, -*size, *size, *size)
+		tUsed, plots, setCount := function.Plot(*timeLowerBound, *timeUpperBound, plotSize, *pointSize)
+		if float64(setCount) < float64(len(plots)*plotSize.Dx()*plotSize.Dy())*0.01 {
+			log.Printf("Less than 1%% change trying again.")
+			continue
+		}
+		heatPlot.RenderPlots(*heatColourCount, plots, plotSize, *scale, function, *timeUpperBound, tUsed, *footerText, *speed, w)
+		function.PlotAndDraw(w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pointSize, *speed, fmt.Sprintf("%s seed: %d", *footerText, seed))
+		log.Printf("Done see %s", *outputFile)
+		break
+	}
 }
 
 func randomFunction() *heatPlot.Function {

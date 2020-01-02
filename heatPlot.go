@@ -390,13 +390,13 @@ func init() {
 }
 
 func ParseRunAndDrawFunction(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pointSize float64, speed time.Duration, footerText string) {
-	function := parseFunction(functionString)
-	RunAndDrawFunction(function, w, size, timeLowerBound, timeUpperBound, scale, heatColourCount, pointSize, speed, footerText)
+	function := ParseFunction(functionString)
+	function.PlotAndDraw(w, size, timeLowerBound, timeUpperBound, scale, heatColourCount, pointSize, speed, footerText)
 }
 
-func RunAndDrawFunction(function *Function, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pointSize float64, speed time.Duration, footerText string) {
+func (function *Function) PlotAndDraw(w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pointSize float64, speed time.Duration, footerText string) {
 	plotSize := image.Rect(-size, -size, size, size)
-	tUsed, plots, _ := RunPlot(timeLowerBound, timeUpperBound, plotSize, function, pointSize)
+	tUsed, plots, _ := function.Plot(timeLowerBound, timeUpperBound, plotSize, pointSize)
 	RenderPlots(heatColourCount, plots, plotSize, scale, function, timeUpperBound, tUsed, footerText, speed, w)
 }
 
@@ -437,11 +437,11 @@ func RenderPlots(heatColourCount int, plots []*Plot, plotSize image.Rectangle, s
 	}
 }
 
-func RunPlot(timeLowerBound int, timeUpperBound int, plotSize image.Rectangle, function *Function, pointSize float64) (tUsed bool, plots []*Plot, setCount int) {
+func (function *Function) Plot(timeLowerBound int, timeUpperBound int, plotSize image.Rectangle, pointSize float64) (tUsed bool, plots []*Plot, setCount int) {
 	for t := (timeLowerBound); t < (timeUpperBound) && tUsed || t == (timeLowerBound); t++ {
 		var err error
 		var plot *Plot
-		if plot, tUsed, err = plotFunction(plotSize, function, t, pointSize); err != nil {
+		if plot, tUsed, err = function.PlotForT(plotSize, t, pointSize); err != nil {
 			log.Panic(err)
 		}
 		setCount += plot.Sets
@@ -450,7 +450,7 @@ func RunPlot(timeLowerBound int, timeUpperBound int, plotSize image.Rectangle, f
 	return
 }
 
-func parseFunction(arg string) *Function {
+func ParseFunction(arg string) *Function {
 	if r := yyParse(NewCalcLexer(arg)); r != 0 {
 		log.Panic("Invalid formula: ", arg)
 	}
@@ -570,7 +570,7 @@ func (plot *Plot) GetPos(x int, y int) int {
 	return absY*plot.Size.Dx() + absX
 }
 
-func plotFunction(size image.Rectangle, function *Function, t int, pointSize float64) (plot *Plot, TUsed bool, err error) {
+func (function *Function) PlotForT(size image.Rectangle, t int, pointSize float64) (plot *Plot, TUsed bool, err error) {
 	plot = &Plot{
 		Size:   size,
 		Values: make([]float64, size.Dy()*size.Dx(), size.Dy()*size.Dx()),

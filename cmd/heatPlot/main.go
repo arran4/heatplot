@@ -11,7 +11,7 @@ import (
 var (
 	heatColourCount = flag.Int("hcc", 126, "Heat colour count.. The number of distinct colours. Can't exceed 254 in total. This value is multiplied by 2. Shouldn't change this.")
 	speed           = flag.Duration("speed", 100*time.Millisecond, "The number of microseconds to wait between each frame")
-	pixelSize       = flag.Float64("pixelsize", .1, "How many x or y steps a pixel is. Ie .1 will mean that every 10 unscaled pixels is 1 normal step")
+	pointSize       = flag.Float64("pointSize", .1, "How many x or y steps a pixel is. Ie .1 will mean that every 10 unscaled pixels is 1 normal step")
 	scale           = flag.Int("scale", 2, "Magnification of the picture")
 	timeLowerBound  = flag.Int("tlb", 0, "where to start T")
 	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
@@ -35,6 +35,6 @@ func main() {
 		log.Panic(err)
 	}
 	defer w.Close()
-	heatPlot.RunFunctionString(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pixelSize, *speed, *footerText)
+	heatPlot.ParseRunAndDrawFunction(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pointSize, *speed, *footerText)
 	log.Printf("Done see %s", *outputFile)
 }

@@ -389,13 +389,19 @@ func init() {
 	}
 }
 
-func RunFunctionString(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration, footerText string) {
+func ParseRunAndDrawFunction(functionString string, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pointSize float64, speed time.Duration, footerText string) {
 	function := parseFunction(functionString)
-	RunFunction(function, w, size, timeLowerBound, timeUpperBound, scale, heatColourCount, pixelSize, speed, footerText)
+	RunAndDrawFunction(function, w, size, timeLowerBound, timeUpperBound, scale, heatColourCount, pointSize, speed, footerText)
 }
 
-func RunFunction(function *Function, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pixelSize float64, speed time.Duration, footerText string) {
+func RunAndDrawFunction(function *Function, w io.Writer, size, timeLowerBound, timeUpperBound, scale, heatColourCount int, pointSize float64, speed time.Duration, footerText string) {
 	plotSize := image.Rect(-size, -size, size, size)
+	tUsed, plots, _ := RunPlot(timeLowerBound, timeUpperBound, plotSize, function, pointSize)
+	RenderPlots(heatColourCount, plots, plotSize, scale, function, timeUpperBound, tUsed, footerText, speed, w)
+}
+
+func RenderPlots(heatColourCount int, plots []*Plot, plotSize image.Rectangle, scale int, function *Function, timeUpperBound int, tUsed bool, footerText string, speed time.Duration, w io.Writer) {
+	delays := []int{}
 	colours := []color.Color{
 		lineColor,
 		color.White,
@@ -403,15 +409,12 @@ func RunFunction(function *Function, w io.Writer, size, timeLowerBound, timeUppe
 	}
 	colours = append(colours, HeatColours(heatColourCount)...)
 	imgs := []*image.Paletted{}
-	delays := []int{}
-	tUsed := false
-	for t := (timeLowerBound); t < (timeUpperBound) && tUsed || t == (timeLowerBound); t++ {
+	for _, plot := range plots {
 		img := image.NewPaletted(plotSize, colours)
 		if err := paintWhite(img, plotSize); err != nil {
 			log.Panic(err)
 		}
-		var err error
-		if tUsed, err = plotFunction(img, plotSize, function, t, heatColourCount, pixelSize); err != nil {
+		if err := plot.Draw(img, heatColourCount); err != nil {
 			log.Panic(err)
 		}
 		if err := drawPlane(img, plotSize); err != nil {
@@ -419,7 +422,8 @@ func RunFunction(function *Function, w io.Writer, size, timeLowerBound, timeUppe
 		}
 		img = FlipAndMoveImage(img)
 		img = ScaleImage(img, scale)
-		if img, err = AddHeaderAndFooter(img, function, t, timeUpperBound, scale, tUsed, footerText); err != nil {
+		var err error
+		if img, err = AddHeaderAndFooter(img, function, plot.T, timeUpperBound, scale, tUsed, footerText); err != nil {
 			log.Panic(err)
 		}
 		imgs = append(imgs, img)
@@ -431,6 +435,19 @@ func RunFunction(function *Function, w io.Writer, size, timeLowerBound, timeUppe
 	}); err != nil {
 		log.Panic(err)
 	}
+}
+
+func RunPlot(timeLowerBound int, timeUpperBound int, plotSize image.Rectangle, function *Function, pointSize float64) (tUsed bool, plots []*Plot, setCount int) {
+	for t := (timeLowerBound); t < (timeUpperBound) && tUsed || t == (timeLowerBound); t++ {
+		var err error
+		var plot *Plot
+		if plot, tUsed, err = plotFunction(plotSize, function, t, pointSize); err != nil {
+			log.Panic(err)
+		}
+		setCount += plot.Sets
+		plots = append(plots, plot)
+	}
+	return
 }
 
 func parseFunction(arg string) *Function {
@@ -509,18 +526,64 @@ func FlipAndMoveImage(img *image.Paletted) *image.Paletted {
 	return result
 }
 
-func plotFunction(img *image.Paletted, size image.Rectangle, function *Function, t, heatColourCount int, pixelSize float64) (TUsed bool, err error) {
-	for x := size.Min.X; x < size.Max.X; x++ {
-		for y := size.Min.Y; y < size.Max.Y; y++ {
-			var w float64
-			w, TUsed, err = function.Evaluate(float64(x)*(pixelSize), float64(y)*(pixelSize), t)
-			if err != nil {
-				return false, err
-			}
-			c := MakeHeatColour(heatColourCount, w)
+type Plot struct {
+	Size   image.Rectangle
+	Values []float64
+	Sets   int
+	T      int
+}
+
+func (plot *Plot) Draw(img *image.Paletted, heatColourCount int) (err error) {
+	for x := plot.Size.Min.X; x < plot.Size.Max.X; x++ {
+		for y := plot.Size.Min.Y; y < plot.Size.Max.Y; y++ {
+			c := MakeHeatColour(heatColourCount, plot.Get(x, y))
 			if c != nil {
 				img.Set(x, y, c)
 			}
+		}
+	}
+	return
+}
+
+func (plot *Plot) Set(x int, y int, w float64) {
+	pos := plot.GetPos(x, y)
+	if pos < 0 || pos > len(plot.Values) {
+		return
+	}
+	plot.Values[pos] = w
+	if w >= -1 && w <= 1 {
+		plot.Sets++
+	}
+}
+
+func (plot *Plot) Get(x int, y int) float64 {
+	pos := plot.GetPos(x, y)
+	if pos < 0 || pos > len(plot.Values) {
+		return 0.0
+	}
+	return plot.Values[pos]
+}
+
+func (plot *Plot) GetPos(x int, y int) int {
+	absX := x - plot.Size.Min.X
+	absY := y - plot.Size.Min.Y
+	return absY*plot.Size.Dx() + absX
+}
+
+func plotFunction(size image.Rectangle, function *Function, t int, pointSize float64) (plot *Plot, TUsed bool, err error) {
+	plot = &Plot{
+		Size:   size,
+		Values: make([]float64, size.Dy()*size.Dx(), size.Dy()*size.Dx()),
+		T:      t,
+	}
+	for x := size.Min.X; x < size.Max.X; x++ {
+		for y := size.Min.Y; y < size.Max.Y; y++ {
+			var w float64
+			w, TUsed, err = function.Evaluate(float64(x)*(pointSize), float64(y)*(pointSize), t)
+			if err != nil {
+				return nil, false, err
+			}
+			plot.Set(x, y, w)
 		}
 	}
 	return

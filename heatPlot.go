@@ -98,8 +98,8 @@ func (v Function) String() string {
 }
 
 func (v Function) Simplify() *Function {
-	e := v.Equals.Simplify().(Equals)
-	v.Equals = &e
+	e := v.Equals.Simplify().(*Equals)
+	v.Equals = e
 	return &v
 }
 
@@ -125,9 +125,17 @@ func (v Equals) String() string {
 }
 
 func (v Equals) Simplify() Expression {
-	v.RHS = v.RHS.Simplify()
-	v.LHS = v.LHS.Simplify()
-	return v
+	v.RHS = removeBrackets(v.RHS.Simplify())
+	v.LHS = removeBrackets(v.LHS.Simplify())
+	return &v
+}
+
+func removeBrackets(e Expression) Expression {
+	switch e := e.(type) {
+	case *Brackets:
+		return removeBrackets(e.Expr)
+	}
+	return e
 }
 
 type Var struct {
@@ -156,7 +164,7 @@ func (v Var) String() string {
 }
 
 func (v Var) Simplify() Expression {
-	return v
+	return &v
 }
 
 type Const struct {
@@ -172,7 +180,7 @@ func (v Const) String() string {
 }
 
 func (v Const) Simplify() Expression {
-	return v
+	return &v
 }
 
 func (v Const) Depth() int {
@@ -195,7 +203,7 @@ func (v Plus) String() string {
 func (v Plus) Simplify() Expression {
 	v.RHS = v.RHS.Simplify()
 	v.LHS = v.LHS.Simplify()
-	return v
+	return &v
 }
 
 func (v Plus) Depth() int {
@@ -222,7 +230,7 @@ func (v Subtract) String() string {
 func (v Subtract) Simplify() Expression {
 	v.RHS = v.RHS.Simplify()
 	v.LHS = v.LHS.Simplify()
-	return v
+	return &v
 }
 
 func (v Subtract) Depth() int {
@@ -249,7 +257,7 @@ func (v Multiply) String() string {
 func (v Multiply) Simplify() Expression {
 	v.RHS = v.RHS.Simplify()
 	v.LHS = v.LHS.Simplify()
-	return v
+	return &v
 }
 
 func (v Multiply) Depth() int {
@@ -276,7 +284,7 @@ func (v Divide) String() string {
 func (v Divide) Simplify() Expression {
 	v.RHS = v.RHS.Simplify()
 	v.LHS = v.LHS.Simplify()
-	return v
+	return &v
 }
 
 func (v Divide) Depth() int {
@@ -303,7 +311,7 @@ func (v Power) String() string {
 func (v Power) Simplify() Expression {
 	v.RHS = v.RHS.Simplify()
 	v.LHS = v.LHS.Simplify()
-	return v
+	return &v
 }
 
 func (v Power) Depth() int {
@@ -330,7 +338,7 @@ func (v Modulus) String() string {
 func (v Modulus) Simplify() Expression {
 	v.RHS = v.RHS.Simplify()
 	v.LHS = v.LHS.Simplify()
-	return v
+	return &v
 }
 
 func (v Modulus) Depth() int {
@@ -350,20 +358,23 @@ func (v Negate) Evaluate(state State) float64 {
 }
 
 func (v Negate) String() string {
-	return fmt.Sprintf("-(%s)", v.Expr.String())
+	return fmt.Sprintf("-%s", v.Expr.String())
 }
 
 func (v Negate) Simplify() Expression {
-	if nn, ok := v.Expr.(*Negate); ok {
-		return nn.Expr.Simplify()
-	}
-	if nb, ok := v.Expr.(*Brackets); ok {
-		if nn, ok := nb.Expr.(*Negate); ok {
-			return nn.Expr.Simplify()
+	switch child := v.Expr.(type) {
+	case *Negate:
+		return child.Expr.Simplify()
+	case *Brackets:
+		switch childChild := child.Expr.(type) {
+		case *Negate:
+			return childChild.Expr.Simplify()
+		case *Const, *Var:
+			v.Expr = childChild
 		}
 	}
 	v.Expr = v.Expr.Simplify()
-	return v
+	return &v
 }
 
 func (v Negate) Depth() int {
@@ -383,8 +394,16 @@ func (v Brackets) String() string {
 }
 
 func (v Brackets) Simplify() Expression {
+	switch next := v.Expr.(type) {
+	case *Brackets:
+		return next.Expr.Simplify()
+	case *Const:
+		return next.Simplify()
+	case *Var:
+		return next.Simplify()
+	}
 	v.Expr = v.Expr.Simplify()
-	return v
+	return &v
 }
 
 func (v Brackets) Depth() int {
@@ -410,7 +429,7 @@ func (v SingleFunction) String() string {
 
 func (v SingleFunction) Simplify() Expression {
 	v.Expr = v.Expr.Simplify()
-	return v
+	return &v
 }
 
 func (v SingleFunction) Depth() int {
@@ -444,7 +463,7 @@ func (v DoubleFunction) String() string {
 func (v DoubleFunction) Simplify() Expression {
 	v.Expr1 = v.Expr1.Simplify()
 	v.Expr2 = v.Expr2.Simplify()
-	return v
+	return &v
 }
 
 func (v DoubleFunction) Depth() int {
@@ -621,8 +640,9 @@ func (function *Function) Plot(timeLowerBound int, timeUpperBound int, plotSize 
 }
 
 func ParseFunction(arg string) *Function {
+	yyResult = nil
 	if r := yyParse(NewCalcLexer(arg)); r != 0 {
-		log.Panic("Invalid formula: ", arg)
+		log.Panic("Invalid formula: ", arg, " Left with ", yyResult)
 	}
 	return yyResult
 }

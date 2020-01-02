@@ -45,10 +45,10 @@ func main() {
 		fstr := function.String()
 		function = function.Simplify()
 		fstrSimplified := function.String()
+		log.Printf("Got function: %s", fstr)
 		if fstrSimplified == fstr {
-			log.Printf("Got function: %s", fstr)
 		} else {
-			log.Printf("Got function: %s simplified from: %s", fstrSimplified, fstr)
+			log.Printf("Got simplified function: %s", fstrSimplified)
 		}
 		depth := function.Depth()
 		if depth <= 3 {
@@ -186,12 +186,14 @@ func randomModulus(d int) heatPlot.Expression {
 
 func randomNegate(d int) heatPlot.Expression {
 	return &heatPlot.Negate{
-		Expr: randomExpr(d),
+		Expr: &heatPlot.Brackets{
+			Expr: randomExpr(d),
+		},
 	}
 }
 
 func randomBrackets(d int) heatPlot.Expression {
-	return &heatPlot.Negate{
+	return &heatPlot.Brackets{
 		Expr: randomExpr(d),
 	}
 }

@@ -13,7 +13,7 @@ var (
 
 func init() {
 	var err error
-	calcLexerRegex, err = regexp.Compile("^(?:(\\s)|([+=,*^/()-])|(\\d+(?:\\.\\d+)?)|([XxYyTt]\\b)|(\\w+))")
+	calcLexerRegex, err = regexp.Compile("^(?:(\\s)|([+%=,*^/()-])|(\\d+(?:\\.\\d+)?)|([XxYyTt]\\b)|(\\w+))")
 	if err != nil {
 		log.Panic("Regex compile issue", err)
 	}

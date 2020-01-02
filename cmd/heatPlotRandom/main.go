@@ -17,7 +17,7 @@ var (
 	pointSize       = flag.Float64("pointSize", .1, "How many x or y steps a pixel is. Ie .1 will mean that every 10 unscaled pixels is 1 normal step")
 	scale           = flag.Int("scale", 2, "Magnification of the picture")
 	timeLowerBound  = flag.Int("tlb", 0, "where to start T")
-	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
+	timeUpperBound  = flag.Int("tub", 25, "Where to end t")
 	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
 	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
 	footerText      = flag.String("footerText", "RND", "Text to put at the bottom of the picture")
@@ -41,12 +41,19 @@ func main() {
 		log.Printf("Got function: %s", function.String())
 		plotSize := image.Rect(-*size, -*size, *size, *size)
 		tUsed, plots := function.Plot(*timeLowerBound, *timeUpperBound, plotSize, *pointSize)
-		setCount, usedFrames := 0, 0
-		for _, plot := range plots {
+		setCount, usedFrames, frameChanges := 0, 0, 0
+		for plotI, plot := range plots {
 			setCount += plot.Sets
 			if plot.Sets > 0 {
 				usedFrames++
 			}
+			if plotI > 1 && !plot.Equals(plots[plotI-1]) {
+				frameChanges++
+			}
+		}
+		if frameChanges <= 1 && len(plots) > 3 {
+			log.Printf("Too few frames are different")
+			continue
 		}
 		if usedFrames < len(plots)/2 {
 			log.Printf("Too few frames used, less than 50%%")

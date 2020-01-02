@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -567,6 +568,10 @@ func (plot *Plot) GetPos(x int, y int) int {
 	absX := x - plot.Size.Min.X
 	absY := y - plot.Size.Min.Y
 	return absY*plot.Size.Dx() + absX
+}
+
+func (plot *Plot) Equals(plot2 *Plot) bool {
+	return reflect.DeepEqual(plot, plot2)
 }
 
 func (function *Function) PlotForT(size image.Rectangle, t int, pointSize float64) (plot *Plot, TUsed bool, err error) {

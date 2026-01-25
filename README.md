@@ -97,10 +97,21 @@ The parser supports:
 - Functions: `sin`, `cos`, `tan`, `abs`, `max`, `min`, `pow`, etc. (See `whatFunctions` for full list)
 - Grouping: `()`
 
-Example Formulas:
-- `y = x + t`
-- `y / 4 = x * sin(t)`
-- `val = x^2 + y^2` (Note: The parser expects an assignment, usually `something = something else`, but internally evaluates `RHS - LHS` for the heatmap value).
+The parser generally expects an equation, often in the form `LHS = RHS`. The heatmap value is calculated as `RHS - LHS`.
+
+## Examples
+
+### Sine Wave
+
+`y = x * sin(t/10)`
+
+![Sine Wave](example_sin.gif)
+
+### Complex Interaction
+
+`y = x * sin(t/10) + y * cos(t/10)`
+
+![Complex Interaction](example_complex.gif)
 
 ## Development
 

@@ -2,5 +2,7 @@
 *.gif
 !example_complex.gif
 !example_sin.gif
+!example_ripple.gif
+!example_interference.gif
 /heatPlot
 /heatPlot.exe

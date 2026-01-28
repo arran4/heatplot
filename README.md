@@ -113,6 +113,18 @@ The parser generally expects an equation, often in the form `LHS = RHS`. The hea
 
 ![Complex Interaction](example_complex.gif)
 
+### Ripple
+
+`y = sin(sqrt(x^2 + y^2) - t/5)`
+
+![Ripple](example_ripple.gif)
+
+### Interference
+
+`y = sin(x/10) + cos(y/10) * sin(t/10)`
+
+![Interference](example_interference.gif)
+
 ## Development
 
 ### Prerequisites

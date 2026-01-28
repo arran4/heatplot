@@ -1,4 +1,6 @@
 /.idea
 *.gif
+!example_complex.gif
+!example_sin.gif
 /heatPlot
 /heatPlot.exe

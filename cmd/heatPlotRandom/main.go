@@ -21,6 +21,7 @@ var (
 	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
 	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
 	footerText      = flag.String("footerText", "RND", "Text to put at the bottom of the picture")
+	rng             *rand.Rand
 )
 
 func init() {
@@ -29,7 +30,7 @@ func init() {
 
 func main() {
 	seed := time.Now().UnixNano()
-	rand.Seed(seed)
+	rng = rand.New(rand.NewSource(seed))
 	flag.Parse()
 	w, err := os.OpenFile(*outputFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -125,18 +126,18 @@ func randomExpr(d int) heatPlot.Expression {
 		randomBrackets,
 		randomActualFunction,
 	}
-	return vs[rand.Intn(len(vs))](d - 1)
+	return vs[rng.Intn(len(vs))](d - 1)
 }
 
 func randomConstNumber(d int) heatPlot.Expression {
 	return &heatPlot.Const{
-		Value: float64(rand.Intn(400)) / 4.0,
+		Value: float64(rng.Intn(400)) / 4.0,
 	}
 }
 
 func randomVar(d int) heatPlot.Expression {
 	vs := []string{"X", "Y", "T"}
-	v := vs[rand.Intn(len(vs))]
+	v := vs[rng.Intn(len(vs))]
 	return &heatPlot.Var{
 		Var: v,
 	}
@@ -199,7 +200,7 @@ func randomBrackets(d int) heatPlot.Expression {
 }
 
 func randomActualFunction(d int) heatPlot.Expression {
-	functionName := heatPlot.FunctionNames[rand.Intn(len(heatPlot.FunctionNames))]
+	functionName := heatPlot.FunctionNames[rng.Intn(len(heatPlot.FunctionNames))]
 	if _, ok := heatPlot.SingleFunctions[functionName]; ok {
 		return randomSingleFunction(functionName, d)
 	}
@@ -217,7 +218,7 @@ func randomDoubleFunction(name string, d int) heatPlot.Expression {
 	return &heatPlot.DoubleFunction{
 		Expr1: randomExpr(d),
 		Expr2: randomExpr(d),
-		Infix: rand.Intn(2) == 0,
+		Infix: rng.Intn(2) == 0,
 		Name:  name,
 	}
 }

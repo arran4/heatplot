@@ -1,0 +1,42 @@
+name: Regenerate Images
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build heatPlot
+        run: go build -o heatPlot cmd/heatPlot/main.go
+
+      - name: Regenerate Images
+        run: |
+          ./heatPlot -outputFile="example_sin.gif" "y = x * sin(t/10)"
+          ./heatPlot -outputFile="example_complex.gif" "y = x * sin(t/10) + y * cos(t/10)"
+          ./heatPlot -outputFile="example_ripple.gif" "y = sin(sqrt(x^2 + y^2) - t/5)"
+          ./heatPlot -outputFile="example_interference.gif" "y = sin(x/10) + cos(y/10) * sin(t/10)"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add *.gif
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Regenerate images"
+            git push
+          fi

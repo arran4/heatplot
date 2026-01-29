@@ -13,7 +13,7 @@ var (
 
 func init() {
 	var err error
-	calcLexerRegex, err = regexp.Compile("^(?:(\\s)|([+%=,*^/()-])|(\\d+(?:\\.\\d+)?)|([XxYyTt]\\b)|(\\w+))")
+	calcLexerRegex, err = regexp.Compile(`^(?:(\s)|([+%=,*^/()-])|(\d+(?:\.\d+)?)|([XxYyTt]\b)|(\w+))`)
 	if err != nil {
 		log.Panic("Regex compile issue", err)
 	}
@@ -46,12 +46,12 @@ func (lex *CalcLexer) Lex(lval *yySymType) int {
 func (lex *CalcLexer) subLex(lval *yySymType) int {
 	rResult := calcLexerRegex.FindStringSubmatch(lex.input)
 	defer func() {
-		if rResult == nil || len(rResult) <= 1 || len(rResult[0]) == 0 {
+		if len(rResult) <= 1 || len(rResult[0]) == 0 {
 			return
 		}
 		lex.input = lex.input[len(rResult[0]):]
 	}()
-	if rResult == nil || len(rResult) <= 1 || len(rResult[0]) == 0 {
+	if len(rResult) <= 1 || len(rResult[0]) == 0 {
 		return 1
 	}
 	if len(rResult[1]) > 0 {

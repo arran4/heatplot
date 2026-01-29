@@ -12,12 +12,12 @@ var (
 	heatColourCount = flag.Int("hcc", 126, "Heat colour count.. The number of distinct colours. Can't exceed 254 in total. This value is multiplied by 2. Shouldn't change this.")
 	speed           = flag.Duration("speed", 100*time.Millisecond, "The number of microseconds to wait between each frame")
 	pointSize       = flag.Float64("pointSize", .1, "How many x or y steps a pixel is. Ie .1 will mean that every 10 unscaled pixels is 1 normal step")
-	scale           = flag.Int("scale", 2, "Magnification of the picture")
+	scale           = flag.Int("scale", 4, "Magnification of the picture")
 	timeLowerBound  = flag.Int("tlb", 0, "where to start T")
 	timeUpperBound  = flag.Int("tub", 100, "Where to end t")
 	size            = flag.Int("size", 100, "The size for each direction in the cartesian plane. Ie 100 would be -100 to 100 on the x and y axis")
 	outputFile      = flag.String("outputFile", "./out.gif", "The output filename")
-	footerText      = flag.String("footerText", "http://github.com/arran4/", "Text to put at the bottom of the picture")
+	footerText      = flag.String("footerText", "https://github.com/arran4/heatplot", "Text to put at the bottom of the picture")
 )
 
 func init() {

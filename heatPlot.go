@@ -677,7 +677,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 func AddText(s string, img *image.Paletted, x, y, scale int) error {
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
 		Size:       12 * float64(scale),
-		DPI:        40,
+		DPI:        96,
 		Hinting:    0,
 		SubPixelsX: 0,
 		SubPixelsY: 0,

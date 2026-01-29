@@ -659,7 +659,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 			result.Set(x+borderSizes.X, y+borderSizes.Y, img.At(x, y))
 		}
 	}
-	if err := AddText(fmt.Sprintf("%s", function.String()), result, newRect.Min.X+10, newRect.Min.Y+borderSizes.Y, scale); err != nil {
+	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+borderSizes.Y, scale); err != nil {
 		return nil, err
 	}
 	if tUsed {
@@ -667,7 +667,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 			return nil, err
 		}
 	} else {
-		if err := AddText(fmt.Sprintf("%s", footerText), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+		if err := AddText(footerText, result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
 			return nil, err
 		}
 	}
@@ -778,7 +778,7 @@ func (plot *Plot) Equals(plot2 *Plot) bool {
 func (function *Function) PlotForT(size image.Rectangle, t int, pointSize float64) (plot *Plot, TUsed bool, err error) {
 	plot = &Plot{
 		Size:   size,
-		Values: make([]float64, size.Dy()*size.Dx(), size.Dy()*size.Dx()),
+		Values: make([]float64, size.Dy()*size.Dx()),
 		T:      t,
 	}
 	for x := size.Min.X; x < size.Max.X; x++ {
@@ -799,7 +799,7 @@ func (v Function) Depth() int {
 }
 
 func HeatColours(heatColourCount int) []color.Color {
-	result := make([]color.Color, (heatColourCount)*2-1, (heatColourCount)*2-1)
+	result := make([]color.Color, (heatColourCount)*2-1)
 	for i := 1; i < (heatColourCount)*2; i++ {
 		v := MakeHeatColour(heatColourCount, float64(i)/float64(heatColourCount)-1)
 		if v == nil {

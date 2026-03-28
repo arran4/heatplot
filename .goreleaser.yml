@@ -72,7 +72,7 @@ nfpms:
     homepage: https://github.com/arran4/
     maintainer: Arran Ubels <arran@ubels.com.au>
     description: NA
-    license: Private
+    license: AFL-3.0
     formats:
       - apk
       - deb

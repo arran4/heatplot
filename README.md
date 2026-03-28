@@ -151,4 +151,4 @@ go test ./...
 
 ## License
 
-This project is licensed under the Educational Community License version 2.0 (ECL-2.0) - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Academic Free License version 3.0 (AFL-3.0) - see the [LICENSE](LICENSE) file for details.

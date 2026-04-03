@@ -36,7 +36,9 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	defer w.Close()
+	defer func() {
+		_ = w.Close()
+	}()
 	for {
 		function := randomFunction(10)
 		if function == nil {

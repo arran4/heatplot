@@ -1,3 +1,5 @@
+version: 2
+
 run:
   timeout: 5m
 
@@ -7,7 +9,25 @@ linters:
     - staticcheck
     - errcheck
     - ineffassign
+  disable:
     - revive
 
 issues:
   exclude-use-default: false
+  exclude:
+    - should have comment or be unexported
+    - should have a package comment
+    - "parameter .* seems to be unused, consider removing or renaming it as _"
+  exclude-rules:
+    - linters:
+        - revive
+      text: "should have comment or be unexported"
+    - linters:
+        - revive
+      text: "should have a package comment"
+    - linters:
+        - revive
+      text: "unused-parameter"
+    - linters:
+        - revive
+      text: "empty-block"

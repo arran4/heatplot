@@ -305,7 +305,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
@@ -324,7 +324,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
           cache: true
       - name: Verify parser generation
         if: runner.os == 'Linux'
@@ -344,7 +344,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
           cache: true
       - run: go vet ./...
 
@@ -357,7 +357,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
       - name: Run go fmt
         run: go fmt ./...
       - name: Create PR if go fmt changed files
@@ -387,7 +387,7 @@ jobs:
         if: ${{ needs.discover.outputs.has_go == 'true' }}
         uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
 
       - name: Run autofix formatters
         shell: bash
@@ -459,7 +459,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
       - name: Build heatPlot
         run: go build -o heatPlot cmd/heatPlot/main.go
       - name: Regenerate Images
@@ -489,7 +489,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
-          go-version: stable
+          go-version-file: go.mod
       - name: Tag commit for release (workflow_dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' && startsWith(inputs.mode, 'release-') }}
         run: git tag ${{ needs.prepare-release-tag.outputs.release_tag }}

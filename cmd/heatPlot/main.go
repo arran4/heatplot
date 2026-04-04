@@ -34,7 +34,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 	heatPlot.ParseRunAndDrawFunction(flag.Arg(0), w, *size, *timeLowerBound, *timeUpperBound, *scale, *heatColourCount, *pointSize, *speed, *footerText)
 	log.Printf("Done see %s", *outputFile)
 }

@@ -30,6 +30,12 @@ func main() {
 		log.Print("Please include the formula after the command you can use x y and t (t for time) in any way you wish")
 		return
 	}
+
+	if flag.Arg(0) == "ui" {
+		runUI()
+		return
+	}
+
 	w, err := os.OpenFile(*outputFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Panic(err)

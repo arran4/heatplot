@@ -109,7 +109,7 @@ func errorImage(msg string) image.Image {
 			img.Set(x, y, color.White)
 		}
 	}
-	heatPlot.AddText(msg, img, 20, 100, 2)
+	_ = heatPlot.AddText(msg, img, 20, 100, 2)
 	return img
 }
 
@@ -145,7 +145,7 @@ func generateImageForUI(formula string, t int, typing bool, typingText string) (
 	}
 
 	// plot.Draw
-	plot.Draw(pImg, *heatColourCount)
+	_ = plot.Draw(pImg, *heatColourCount)
 
 	// drawPlane
 	for x := plotSize.Min.X; x < plotSize.Max.X; x++ {

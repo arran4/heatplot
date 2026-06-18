@@ -35,6 +35,7 @@ func runUI() {
 		typingText := ""
 
 		var sz sizeevent.Event
+		var b screen.Buffer
 
 		for {
 			switch e := w.NextEvent().(type) {
@@ -85,11 +86,19 @@ func runUI() {
 
 				// Upload to shiny buffer
 				if img != nil {
-					b, err := s.NewBuffer(img.Bounds().Max)
-					if err == nil {
+					if b == nil || b.Bounds().Max != img.Bounds().Max {
+						if b != nil {
+							b.Release()
+						}
+						b, err = s.NewBuffer(img.Bounds().Max)
+						if err != nil {
+							b = nil
+						}
+					}
+
+					if b != nil {
 						draw.Draw(b.RGBA(), b.Bounds(), img, image.Point{}, draw.Src)
 						w.Upload(image.Point{}, b, b.Bounds())
-						b.Release()
 					}
 				}
 
@@ -104,11 +113,6 @@ func runUI() {
 func errorImage(msg string) image.Image {
 	colours := []color.Color{color.White, color.Black}
 	img := image.NewPaletted(image.Rect(0, 0, 800, 200), colours)
-	for x := 0; x < 800; x++ {
-		for y := 0; y < 200; y++ {
-			img.Set(x, y, color.White)
-		}
-	}
 	_ = heatPlot.AddText(msg, img, 20, 100, 2)
 	return img
 }
@@ -138,11 +142,7 @@ func generateImageForUI(formula string, t int, typing bool, typingText string) (
 	pImg := image.NewPaletted(plotSize, colours)
 
 	// paintWhite
-	for x := plotSize.Min.X; x < plotSize.Max.X; x++ {
-		for y := plotSize.Min.Y; y < plotSize.Max.Y; y++ {
-			pImg.Set(x, y, color.White)
-		}
-	}
+	draw.Draw(pImg, pImg.Bounds(), &image.Uniform{C: color.White}, image.Point{}, draw.Src)
 
 	// plot.Draw
 	_ = plot.Draw(pImg, *heatColourCount)

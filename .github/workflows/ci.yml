@@ -458,7 +458,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build heatPlot
-        run: go build -o heatPlot cmd/heatPlot/main.go
+        run: go build -o heatPlot ./cmd/heatPlot
       - name: Regenerate Images
         run: |
           ./heatPlot -outputFile="example_sin.gif" "y = x * sin(t/10)"

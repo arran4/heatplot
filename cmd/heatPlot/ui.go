@@ -288,6 +288,7 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 	}
 
 	if state.ShowHelp {
+		// Draw a semi-transparent or solid overlay box for help text readability
 		helpText := []string{
 			"Commands:",
 			"  t       : Edit formula",
@@ -297,8 +298,11 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 			"  Esc / q : Quit",
 		}
 
+		overlayRect := image.Rect(10*(*scale), 10*(*scale), 250*(*scale), 150*(*scale))
+		draw.Draw(pImg, overlayRect, &image.Uniform{C: color.RGBA{255, 255, 255, 230}}, image.Point{}, draw.Over)
+
 		for i, text := range helpText {
-			_ = heatPlot.AddText(text, pImg, 20*(*scale), 20*(*scale)+i*20*(*scale), *scale)
+			_ = heatPlot.AddText(text, pImg, 20*(*scale), 30*(*scale)+i*20*(*scale), *scale)
 		}
 	}
 

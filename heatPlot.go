@@ -654,6 +654,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 	if tUsed {
 		footerDisplay = fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText)
 	}
+	headerDisplay := function.String()
 
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
 		Size:       12 * float64(scale),
@@ -665,11 +666,16 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 	d := &font.Drawer{
 		Face: face,
 	}
-	textWidth := d.MeasureString(footerDisplay).Ceil() + 20 // add some padding
+
+	footerWidth := d.MeasureString(footerDisplay).Ceil() + 20 // add some padding
+	headerWidth := d.MeasureString(headerDisplay).Ceil() + 20
 
 	width := img.Rect.Max.X + borderSizes.X*2
-	if width < textWidth {
-		width = textWidth
+	if width < footerWidth {
+		width = footerWidth
+	}
+	if width < headerWidth {
+		width = headerWidth
 	}
 
 	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2)

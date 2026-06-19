@@ -45,8 +45,9 @@ func (s *UIState) handleKeyEvent(code key.Code, r rune) bool {
 			s.Typing = false
 			changed = true
 		} else if code == key.CodeDeleteBackspace {
-			if len(s.TypingText) > 0 {
-				s.TypingText = s.TypingText[:len(s.TypingText)-1]
+			runes := []rune(s.TypingText)
+			if len(runes) > 0 {
+				s.TypingText = string(runes[:len(runes)-1])
 				changed = true
 			}
 		} else if r != 0 {

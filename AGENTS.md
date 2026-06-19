@@ -6,7 +6,7 @@ The `heatPlot` tool features a `test-ui` mode to headlessly verify the UI logic 
 ### Usage
 Run the tool with the `-test-ui` and `-test-ui-out` flags:
 ```bash
-./heatPlot -test-ui=events.json -test-ui-out=output.png
+./heatPlot -test-ui=events.json -test-ui-out=output.png ui
 ```
 
 ### JSON Input Format

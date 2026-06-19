@@ -217,7 +217,7 @@ func runUITest() {
 	if err != nil {
 		log.Fatalf("Failed to create output file: %v", err)
 	}
-	defer outFile.Close()
+	defer func() { _ = outFile.Close() }()
 
 	if err := png.Encode(outFile, img); err != nil {
 		log.Fatalf("Failed to encode PNG: %v", err)

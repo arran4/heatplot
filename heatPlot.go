@@ -649,7 +649,30 @@ func ParseFunction(arg string) *Function {
 
 func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string) (*image.Paletted, error) {
 	borderSizes := image.Pt(20*scale, 20*scale)
-	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, img.Rect.Max.X+borderSizes.X*2, img.Rect.Max.Y+borderSizes.Y*2)
+
+	footerDisplay := footerText
+	if tUsed {
+		footerDisplay = fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText)
+	}
+
+	face := truetype.NewFace(goregularfnt, &truetype.Options{
+		Size:       12 * float64(scale),
+		DPI:        96,
+		Hinting:    0,
+		SubPixelsX: 0,
+		SubPixelsY: 0,
+	})
+	d := &font.Drawer{
+		Face: face,
+	}
+	textWidth := d.MeasureString(footerDisplay).Ceil() + 20 // add some padding
+
+	width := img.Rect.Max.X + borderSizes.X*2
+	if width < textWidth {
+		width = textWidth
+	}
+
+	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2)
 	result := image.NewPaletted(newRect, img.Palette)
 	if err := paintWhite(result, newRect); err != nil {
 		return nil, err

@@ -648,7 +648,7 @@ func ParseFunction(arg string) *Function {
 }
 
 func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string) (*image.Paletted, error) {
-	borderSizes := image.Pt(20*scale, 20*scale)
+	borderSizes := image.Pt(20*scale, 30*scale) // increased Y padding for formula overhang
 
 	footerDisplay := footerText
 	if tUsed {

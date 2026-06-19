@@ -273,13 +273,13 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 	pImg = heatPlot.FlipAndMoveImage(pImg)
 	pImg = heatPlot.ScaleImage(pImg, *scale)
 
-	footer := *footerText
+	footer := ""
 	if state.Typing {
 		footer = "Typing: " + state.TypingText + "_"
 	} else if state.ShowHelp {
 		footer = "Help: [t] Type formula [Left/Right] Change T [Esc/q] Quit"
 	} else {
-		footer = "[? or F1 for Help] " + footer
+		footer = "[? or F1 for Help]"
 	}
 
 	pImg, err2 = heatPlot.AddHeaderAndFooter(pImg, function, plot.T, *timeUpperBound, *scale, tUsed, footer)
@@ -298,11 +298,11 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 			"  Esc / q : Quit",
 		}
 
-		overlayRect := image.Rect(10*(*scale), 10*(*scale), 250*(*scale), 150*(*scale))
-		draw.Draw(pImg, overlayRect, &image.Uniform{C: color.RGBA{255, 255, 255, 230}}, image.Point{}, draw.Over)
+		overlayRect := image.Rect(10*(*scale), 30*(*scale), 250*(*scale), 180*(*scale))
+		draw.Draw(pImg, overlayRect, &image.Uniform{C: color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
 
 		for i, text := range helpText {
-			_ = heatPlot.AddText(text, pImg, 20*(*scale), 30*(*scale)+i*20*(*scale), *scale)
+			_ = heatPlot.AddText(text, pImg, 20*(*scale), 50*(*scale)+i*20*(*scale), *scale)
 		}
 	}
 

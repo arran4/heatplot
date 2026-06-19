@@ -105,6 +105,7 @@ func runUI() {
 				w.Publish()
 			case sizeevent.Event:
 				sz = e
+				w.Send(paint.Event{})
 			}
 		}
 	})

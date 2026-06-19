@@ -688,11 +688,12 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 			result.Set(x+borderSizes.X, y+borderSizes.Y, img.At(x, y))
 		}
 	}
-	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+borderSizes.Y, scale); err != nil {
+	// borderSizes.Y is 30*scale now to give more top space to chart. Text should be drawn closer to top edge.
+	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+(15*scale), scale); err != nil {
 		return nil, err
 	}
 	if tUsed {
-		if err := AddText(fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+		if err := AddText(fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText), result, newRect.Min.X+10, newRect.Max.Y-(5*scale), scale); err != nil {
 			return nil, err
 		}
 	} else {

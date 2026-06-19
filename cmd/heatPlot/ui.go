@@ -299,7 +299,7 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 		}
 
 		overlayRect := image.Rect(10*(*scale), 30*(*scale), 250*(*scale), 180*(*scale))
-		draw.Draw(pImg, overlayRect, &image.Uniform{C: color.RGBA{255, 255, 255, 255}}, image.Point{}, draw.Src)
+		draw.DrawMask(pImg, overlayRect, &image.Uniform{C: color.RGBA{128, 128, 128, 255}}, image.Point{}, &image.Uniform{C: color.Alpha{200}}, image.Point{}, draw.Over)
 
 		for i, text := range helpText {
 			_ = heatPlot.AddText(text, pImg, 20*(*scale), 50*(*scale)+i*20*(*scale), *scale)

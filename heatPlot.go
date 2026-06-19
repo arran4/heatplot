@@ -693,11 +693,17 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 		return nil, err
 	}
 	if tUsed {
-		if err := AddText(fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText), result, newRect.Min.X+10, newRect.Max.Y-(5*scale), scale); err != nil {
+		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, newRect.Max.Y-(5*scale), scale); err != nil {
+			return nil, err
+		}
+
+		d := &font.Drawer{Face: face}
+		tWidth := d.MeasureString(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound))).Ceil()
+		if err := AddTextColor(footerText, result, newRect.Min.X+10+tWidth, newRect.Max.Y-(5*scale), scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := AddText(footerText, result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+		if err := AddTextColor(footerText, result, newRect.Min.X+10, newRect.Max.Y-10, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
 			return nil, err
 		}
 	}
@@ -705,6 +711,10 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 }
 
 func AddText(s string, img *image.Paletted, x, y, scale int) error {
+	return AddTextColor(s, img, x, y, scale, color.Black)
+}
+
+func AddTextColor(s string, img *image.Paletted, x, y, scale int, c color.Color) error {
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
 		Size:       12 * float64(scale),
 		DPI:        96,
@@ -714,7 +724,7 @@ func AddText(s string, img *image.Paletted, x, y, scale int) error {
 	})
 	d := &font.Drawer{
 		Dst:  img,
-		Src:  image.Black,
+		Src:  image.NewUniform(c),
 		Face: face,
 		Dot:  fixed.P(x, y),
 	}

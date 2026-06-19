@@ -648,7 +648,7 @@ func ParseFunction(arg string) *Function {
 }
 
 func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string) (*image.Paletted, error) {
-	borderSizes := image.Pt(20*scale, 30*scale) // increased Y padding for formula overhang
+	borderSizes := image.Pt(20*scale, 20*scale)
 
 	footerDisplay := footerText
 	if tUsed {
@@ -688,18 +688,21 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 			result.Set(x+borderSizes.X, y+borderSizes.Y, img.At(x, y))
 		}
 	}
-	// borderSizes.Y is 30*scale now to give more top space to chart. Text should be drawn closer to top edge.
-	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+(15*scale), scale); err != nil {
+	// Y coordinate for text drawing should be near the top but adjusted so descenders/ascenders fit
+	// By default, the Dot specifies the baseline of the text.
+	// Since borderSizes.Y is 20*scale, placing the baseline at Min.Y + (16*scale) leaves room
+	// for the text above the chart without bumping it.
+	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+(16*scale), scale); err != nil {
 		return nil, err
 	}
 	if tUsed {
-		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, newRect.Max.Y-(5*scale), scale); err != nil {
+		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
 			return nil, err
 		}
 
 		d := &font.Drawer{Face: face}
 		tWidth := d.MeasureString(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound))).Ceil()
-		if err := AddTextColor(footerText, result, newRect.Min.X+10+tWidth, newRect.Max.Y-(5*scale), scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
+		if err := AddTextColor(footerText, result, newRect.Min.X+10+tWidth, newRect.Max.Y-10, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
 			return nil, err
 		}
 	} else {

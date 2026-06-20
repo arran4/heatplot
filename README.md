@@ -29,7 +29,7 @@ Generates a heatmap GIF from a provided mathematical formula.
 **Run UI mode:**
 
 ```bash
-./heatPlot ui
+./heatPlot ui ["formula"]
 ```
 
 **UI Controls:**

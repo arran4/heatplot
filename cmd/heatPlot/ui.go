@@ -294,15 +294,37 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 			"  Right   : Increase T",
 		}
 
-		// The help overlay width doesn't need to match the chart.
-		// Height depends on the number of text items.
-		boxWidth := 280 * (*scale)
+		// Draw a semi-transparent overlay box for help text readability, centered.
+		// Measure width of longest string to bound the box precisely.
+		longestWidth := 0
+		for _, text := range helpText {
+			width := len(text) * 8 * (*scale) // Approximation
+			if width > longestWidth {
+				longestWidth = width
+			}
+		}
+
+		boxWidth := longestWidth + 40*(*scale) // Extra padding
 		boxHeight := (20 * (*scale)) + (len(helpText) * 20 * (*scale))
-		overlayRect := image.Rect(10*(*scale), 30*(*scale), 10*(*scale)+boxWidth, 30*(*scale)+boxHeight)
+
+		// Center the box horizontally
+		imgWidth := pImg.Bounds().Dx()
+		startX := (imgWidth - boxWidth) / 2
+		if startX < 10*(*scale) {
+			startX = 10*(*scale)
+		}
+
+		overlayRect := image.Rect(startX, 30*(*scale), startX+boxWidth, 30*(*scale)+boxHeight)
+
+		// Draw border
+		borderRect := image.Rect(startX-2*(*scale), 30*(*scale)-2*(*scale), startX+boxWidth+2*(*scale), 30*(*scale)+boxHeight+2*(*scale))
+		draw.Draw(pImg, borderRect, &image.Uniform{C: color.Black}, image.Point{}, draw.Src)
+
+		// Draw gray background
 		draw.DrawMask(pImg, overlayRect, &image.Uniform{C: color.RGBA{128, 128, 128, 255}}, image.Point{}, &image.Uniform{C: color.Alpha{200}}, image.Point{}, draw.Over)
 
 		for i, text := range helpText {
-			_ = heatPlot.AddText(text, pImg, 20*(*scale), 50*(*scale)+i*20*(*scale), *scale)
+			_ = heatPlot.AddText(text, pImg, startX+20*(*scale), 50*(*scale)+i*20*(*scale), *scale)
 		}
 	}
 

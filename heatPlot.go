@@ -654,10 +654,6 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string, hintText string) (*image.Paletted, error) {
 	borderSizes := image.Pt(20*scale, 20*scale)
 
-	footerDisplay := footerText
-	if tUsed {
-		footerDisplay = fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText)
-	}
 	headerDisplay := function.String()
 
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
@@ -671,9 +667,20 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 		Face: face,
 	}
 
-	footerWidth := d.MeasureString(footerDisplay).Ceil() + 20 // add some padding
+	footerWidth := d.MeasureString(footerText).Ceil() + 20
 	headerWidth := d.MeasureString(headerDisplay).Ceil() + 20
-	hintWidth := d.MeasureString(hintText).Ceil() + 20
+
+	tStr := ""
+	if tUsed {
+		tStr = fmt.Sprintf("T: %d/%d ", t, (timeUpperBound))
+	}
+	tWidth := d.MeasureString(tStr).Ceil()
+	hintWidth := 0
+	if hintText != "" {
+		hintWidth = d.MeasureString(" " + hintText).Ceil()
+	}
+
+	combinedTopFooterWidth := tWidth + hintWidth + 20
 
 	width := img.Rect.Max.X + borderSizes.X*2
 	if width < footerWidth {
@@ -682,11 +689,12 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 	if width < headerWidth {
 		width = headerWidth
 	}
-	if width < hintWidth {
-		width = hintWidth
+	if width < combinedTopFooterWidth {
+		width = combinedTopFooterWidth
 	}
 
-	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2)
+	// Make the bottom padding taller to accommodate two lines of text: the T/hint line, and the URL line below it.
+	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2+(16*scale))
 	result := image.NewPaletted(newRect, img.Palette)
 	if err := paintWhite(result, newRect); err != nil {
 		return nil, err
@@ -703,22 +711,17 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+(16*scale), scale); err != nil {
 		return nil, err
 	}
-	footerY := newRect.Max.Y - 10
+	footerYURL := newRect.Max.Y - 10
+	footerYTop := newRect.Max.Y - 10 - (16 * scale) // top line for T: ... and hintText
 
 	if tUsed {
-		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, footerY, scale); err != nil {
+		if err := AddText(fmt.Sprintf("T: %d/%d", t, (timeUpperBound)), result, newRect.Min.X+10, footerYTop, scale); err != nil {
 			return nil, err
 		}
+	}
 
-		d := &font.Drawer{Face: face}
-		tWidth := d.MeasureString(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound))).Ceil()
-		if err := AddTextColor(footerText, result, newRect.Min.X+10+tWidth, footerY, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := AddTextColor(footerText, result, newRect.Min.X+10, footerY, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
-			return nil, err
-		}
+	if err := AddTextColor(footerText, result, newRect.Min.X+10, footerYURL, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
+		return nil, err
 	}
 
 	if hintText != "" {
@@ -727,7 +730,7 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 
 		// Right align the hint text based on the image's calculated max width, factoring in border padding 10
 		hintX := newRect.Max.X - 10 - hintWidth
-		if err := AddText(hintText, result, hintX, footerY, scale); err != nil {
+		if err := AddText(hintText, result, hintX, footerYTop, scale); err != nil {
 			return nil, err
 		}
 	}

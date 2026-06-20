@@ -653,9 +653,6 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 
 func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string, hintText string) (*image.Paletted, error) {
 	borderSizes := image.Pt(20*scale, 20*scale)
-	if hintText != "" {
-		borderSizes.Y = 30*scale // add some extra height for the hint
-	}
 
 	footerDisplay := footerText
 	if tUsed {
@@ -707,9 +704,6 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 		return nil, err
 	}
 	footerY := newRect.Max.Y - 10
-	if hintText != "" {
-		footerY = newRect.Max.Y - 10 - (12 * scale)
-	}
 
 	if tUsed {
 		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, footerY, scale); err != nil {
@@ -728,7 +722,12 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 	}
 
 	if hintText != "" {
-		if err := AddText(hintText, result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+		d := &font.Drawer{Face: face}
+		hintWidth := d.MeasureString(hintText).Ceil()
+
+		// Right align the hint text based on the image's calculated max width, factoring in border padding 10
+		hintX := newRect.Max.X - 10 - hintWidth
+		if err := AddText(hintText, result, hintX, footerY, scale); err != nil {
 			return nil, err
 		}
 	}

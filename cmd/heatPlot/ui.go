@@ -286,17 +286,19 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 	}
 
 	if state.ShowHelp {
-		// Draw a semi-transparent or solid overlay box for help text readability
+		// Draw a semi-transparent overlay box for help text readability
 		helpText := []string{
-			"Commands:",
+			"Commands (Esc / q / F1 / ? to dismiss):",
 			"  t       : Edit formula",
 			"  Left    : Decrease T",
 			"  Right   : Increase T",
-			"  ? / F1  : Toggle Help",
-			"  Esc / q : Quit",
 		}
 
-		overlayRect := image.Rect(10*(*scale), 30*(*scale), 250*(*scale), 180*(*scale))
+		// The help overlay width doesn't need to match the chart.
+		// Height depends on the number of text items.
+		boxWidth := 280 * (*scale)
+		boxHeight := (20 * (*scale)) + (len(helpText) * 20 * (*scale))
+		overlayRect := image.Rect(10*(*scale), 30*(*scale), 10*(*scale)+boxWidth, 30*(*scale)+boxHeight)
 		draw.DrawMask(pImg, overlayRect, &image.Uniform{C: color.RGBA{128, 128, 128, 255}}, image.Point{}, &image.Uniform{C: color.Alpha{200}}, image.Point{}, draw.Over)
 
 		for i, text := range helpText {

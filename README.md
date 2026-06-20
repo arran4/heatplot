@@ -22,6 +22,25 @@ There are three main commands available in the `cmd` directory:
 
 Generates a heatmap GIF from a provided mathematical formula.
 
+#### Interactive UI
+
+`heatPlot` includes an interactive UI mode that allows users to type formulas and navigate the time range (`t`) visually.
+
+**Run UI mode:**
+
+```bash
+./heatPlot ui ["formula"]
+```
+
+**UI Controls:**
+- `t` or `T`: Edit the current formula
+- `Return`/`Enter`: Apply the new formula while typing
+- `Backspace`: Delete characters while typing
+- `Escape`: Cancel typing (if editing) or quit the application
+- `Left Arrow` / `Right Arrow`: Decrease / Increase time (`t`)
+- `F1` or `?`: Toggle help menu
+- `q` or `Q`: Quit the application
+
 **Build:**
 
 ```bash

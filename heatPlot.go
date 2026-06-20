@@ -648,8 +648,53 @@ func ParseFunction(arg string) *Function {
 }
 
 func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string) (*image.Paletted, error) {
+	return AddHeaderAndFooterWithHint(img, function, t, timeUpperBound, scale, tUsed, footerText, "")
+}
+
+func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string, hintText string) (*image.Paletted, error) {
 	borderSizes := image.Pt(20*scale, 20*scale)
-	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, img.Rect.Max.X+borderSizes.X*2, img.Rect.Max.Y+borderSizes.Y*2)
+
+	headerDisplay := function.String()
+
+	face := truetype.NewFace(goregularfnt, &truetype.Options{
+		Size:       12 * float64(scale),
+		DPI:        96,
+		Hinting:    0,
+		SubPixelsX: 0,
+		SubPixelsY: 0,
+	})
+	d := &font.Drawer{
+		Face: face,
+	}
+
+	footerWidth := d.MeasureString(footerText).Ceil() + 20
+	headerWidth := d.MeasureString(headerDisplay).Ceil() + 20
+
+	tStr := ""
+	if tUsed {
+		tStr = fmt.Sprintf("T: %d/%d ", t, (timeUpperBound))
+	}
+	tWidth := d.MeasureString(tStr).Ceil()
+	hintWidth := 0
+	if hintText != "" {
+		hintWidth = d.MeasureString(" " + hintText).Ceil()
+	}
+
+	combinedTopFooterWidth := tWidth + hintWidth + 20
+
+	width := img.Rect.Max.X + borderSizes.X*2
+	if width < footerWidth {
+		width = footerWidth
+	}
+	if width < headerWidth {
+		width = headerWidth
+	}
+	if width < combinedTopFooterWidth {
+		width = combinedTopFooterWidth
+	}
+
+	// Make the bottom padding taller to accommodate two lines of text: the T/hint line, and the URL line below it.
+	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2+(16*scale))
 	result := image.NewPaletted(newRect, img.Palette)
 	if err := paintWhite(result, newRect); err != nil {
 		return nil, err
@@ -659,22 +704,45 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 			result.Set(x+borderSizes.X, y+borderSizes.Y, img.At(x, y))
 		}
 	}
-	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+borderSizes.Y, scale); err != nil {
+	// Y coordinate for text drawing should be near the top but adjusted so descenders/ascenders fit
+	// By default, the Dot specifies the baseline of the text.
+	// Since borderSizes.Y is 20*scale, placing the baseline at Min.Y + (16*scale) leaves room
+	// for the text above the chart without bumping it.
+	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+(16*scale), scale); err != nil {
 		return nil, err
 	}
+	footerYURL := newRect.Max.Y - 10
+	footerYTop := newRect.Max.Y - 10 - (16 * scale) // top line for T: ... and hintText
+
 	if tUsed {
-		if err := AddText(fmt.Sprintf("T: %d/%d - %s", t, (timeUpperBound), footerText), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := AddText(footerText, result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+		if err := AddText(fmt.Sprintf("T: %d/%d", t, (timeUpperBound)), result, newRect.Min.X+10, footerYTop, scale); err != nil {
 			return nil, err
 		}
 	}
+
+	if err := AddTextColor(footerText, result, newRect.Min.X+10, footerYURL, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
+		return nil, err
+	}
+
+	if hintText != "" {
+		d := &font.Drawer{Face: face}
+		hintWidth := d.MeasureString(hintText).Ceil()
+
+		// Right align the hint text based on the image's calculated max width, factoring in border padding 10
+		hintX := newRect.Max.X - 10 - hintWidth
+		if err := AddText(hintText, result, hintX, footerYTop, scale); err != nil {
+			return nil, err
+		}
+	}
+
 	return result, nil
 }
 
 func AddText(s string, img *image.Paletted, x, y, scale int) error {
+	return AddTextColor(s, img, x, y, scale, color.Black)
+}
+
+func AddTextColor(s string, img *image.Paletted, x, y, scale int, c color.Color) error {
 	face := truetype.NewFace(goregularfnt, &truetype.Options{
 		Size:       12 * float64(scale),
 		DPI:        96,
@@ -684,7 +752,7 @@ func AddText(s string, img *image.Paletted, x, y, scale int) error {
 	})
 	d := &font.Drawer{
 		Dst:  img,
-		Src:  image.Black,
+		Src:  image.NewUniform(c),
 		Face: face,
 		Dot:  fixed.P(x, y),
 	}

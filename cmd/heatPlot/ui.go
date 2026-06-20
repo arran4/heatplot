@@ -273,16 +273,14 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 	pImg = heatPlot.FlipAndMoveImage(pImg)
 	pImg = heatPlot.ScaleImage(pImg, *scale)
 
-	footer := ""
+	hintText := ""
 	if state.Typing {
-		footer = "Typing: " + state.TypingText + "_"
-	} else if state.ShowHelp {
-		footer = "Help: [t] Type formula [Left/Right] Change T [Esc/q] Quit"
-	} else {
-		footer = "[? or F1 for Help]"
+		hintText = "Typing: " + state.TypingText + "_"
+	} else if !state.ShowHelp {
+		hintText = "[? or F1 for Help]"
 	}
 
-	pImg, err2 = heatPlot.AddHeaderAndFooter(pImg, function, plot.T, *timeUpperBound, *scale, tUsed, footer)
+	pImg, err2 = heatPlot.AddHeaderAndFooterWithHint(pImg, function, plot.T, *timeUpperBound, *scale, tUsed, *footerText, hintText)
 	if err2 != nil {
 		return nil, err2
 	}

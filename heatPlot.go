@@ -648,7 +648,14 @@ func ParseFunction(arg string) *Function {
 }
 
 func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string) (*image.Paletted, error) {
+	return AddHeaderAndFooterWithHint(img, function, t, timeUpperBound, scale, tUsed, footerText, "")
+}
+
+func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, timeUpperBound, scale int, tUsed bool, footerText string, hintText string) (*image.Paletted, error) {
 	borderSizes := image.Pt(20*scale, 20*scale)
+	if hintText != "" {
+		borderSizes.Y = 30*scale // add some extra height for the hint
+	}
 
 	footerDisplay := footerText
 	if tUsed {
@@ -669,6 +676,7 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 
 	footerWidth := d.MeasureString(footerDisplay).Ceil() + 20 // add some padding
 	headerWidth := d.MeasureString(headerDisplay).Ceil() + 20
+	hintWidth := d.MeasureString(hintText).Ceil() + 20
 
 	width := img.Rect.Max.X + borderSizes.X*2
 	if width < footerWidth {
@@ -676,6 +684,9 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 	}
 	if width < headerWidth {
 		width = headerWidth
+	}
+	if width < hintWidth {
+		width = hintWidth
 	}
 
 	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2)
@@ -695,21 +706,33 @@ func AddHeaderAndFooter(img *image.Paletted, function *Function, t, timeUpperBou
 	if err := AddText(function.String(), result, newRect.Min.X+10, newRect.Min.Y+(16*scale), scale); err != nil {
 		return nil, err
 	}
+	footerY := newRect.Max.Y - 10
+	if hintText != "" {
+		footerY = newRect.Max.Y - 10 - (12 * scale)
+	}
+
 	if tUsed {
-		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+		if err := AddText(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound)), result, newRect.Min.X+10, footerY, scale); err != nil {
 			return nil, err
 		}
 
 		d := &font.Drawer{Face: face}
 		tWidth := d.MeasureString(fmt.Sprintf("T: %d/%d - ", t, (timeUpperBound))).Ceil()
-		if err := AddTextColor(footerText, result, newRect.Min.X+10+tWidth, newRect.Max.Y-10, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
+		if err := AddTextColor(footerText, result, newRect.Min.X+10+tWidth, footerY, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := AddTextColor(footerText, result, newRect.Min.X+10, newRect.Max.Y-10, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
+		if err := AddTextColor(footerText, result, newRect.Min.X+10, footerY, scale-2, color.RGBA{128, 128, 128, 255}); err != nil {
 			return nil, err
 		}
 	}
+
+	if hintText != "" {
+		if err := AddText(hintText, result, newRect.Min.X+10, newRect.Max.Y-10, scale); err != nil {
+			return nil, err
+		}
+	}
+
 	return result, nil
 }
 

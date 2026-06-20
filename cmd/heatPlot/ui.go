@@ -280,7 +280,12 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 		hintText = "[? or F1 for Help]"
 	}
 
-	pImg, err2 = heatPlot.AddHeaderAndFooterWithHint(pImg, function, plot.T, *timeUpperBound, *scale, tUsed, *footerText, hintText)
+	footerUrl := ""
+	if *testUI != "" { // Only display footer url in export mode
+		footerUrl = *footerText
+	}
+
+	pImg, err2 = heatPlot.AddHeaderAndFooterWithHint(pImg, function, plot.T, *timeUpperBound, *scale, tUsed, footerUrl, hintText)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -320,8 +325,8 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 		borderRect := image.Rect(startX-2*(*scale), 30*(*scale)-2*(*scale), startX+boxWidth+2*(*scale), 30*(*scale)+boxHeight+2*(*scale))
 		draw.Draw(pImg, borderRect, &image.Uniform{C: color.Black}, image.Point{}, draw.Src)
 
-		// Draw gray background
-		draw.DrawMask(pImg, overlayRect, &image.Uniform{C: color.RGBA{128, 128, 128, 255}}, image.Point{}, &image.Uniform{C: color.Alpha{200}}, image.Point{}, draw.Over)
+		// Draw gray background - make it lighter by increasing alpha transparency or using lighter gray
+		draw.DrawMask(pImg, overlayRect, &image.Uniform{C: color.RGBA{220, 220, 220, 255}}, image.Point{}, &image.Uniform{C: color.Alpha{220}}, image.Point{}, draw.Over)
 
 		for i, text := range helpText {
 			_ = heatPlot.AddText(text, pImg, startX+20*(*scale), 50*(*scale)+i*20*(*scale), *scale)

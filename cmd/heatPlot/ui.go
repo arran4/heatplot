@@ -257,7 +257,7 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 	pImg := image.NewPaletted(plotSize, colours)
 
 	// paintWhite
-	draw.Draw(pImg, pImg.Bounds(), &image.Uniform{C: color.White}, image.Point{}, draw.Src)
+	_ = heatPlot.PaintWhite(pImg, plotSize)
 
 	// plot.Draw
 	_ = plot.Draw(pImg, *heatColourCount)

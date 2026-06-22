@@ -596,6 +596,7 @@ func RenderPlots(heatColourCount int, plots []*Plot, plotSize image.Rectangle, s
 		lineColor,
 		color.White,
 		color.Black,
+		color.RGBA{128, 128, 128, 255}, // footer grey
 	}
 	colours = append(colours, HeatColours(heatColourCount)...)
 	imgs := []*image.Paletted{}

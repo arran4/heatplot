@@ -693,6 +693,8 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 		width = combinedTopFooterWidth
 	}
 
+	xOffset := (width - img.Rect.Dx()) / 2
+
 	// Make the bottom padding taller to accommodate two lines of text: the T/hint line, and the URL line below it.
 	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2+(16*scale))
 	result := image.NewPaletted(newRect, img.Palette)
@@ -701,7 +703,7 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 	}
 	for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
 		for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
-			result.Set(x+borderSizes.X, y+borderSizes.Y, img.At(x, y))
+			result.Set(x+xOffset, y+borderSizes.Y, img.At(x, y))
 		}
 	}
 	// Y coordinate for text drawing should be near the top but adjusted so descenders/ascenders fit
@@ -905,13 +907,28 @@ type Image interface {
 	image.Image
 }
 
-func paintWhite(img Image, size image.Rectangle) error {
+func PaintWhite(img Image, size image.Rectangle) error {
+	if pImg, ok := img.(*image.Paletted); ok {
+		r := size.Intersect(pImg.Bounds())
+		index := uint8(pImg.Palette.Index(color.White))
+		for y := r.Min.Y; y < r.Max.Y; y++ {
+			offset := pImg.PixOffset(r.Min.X, y)
+			for x := 0; x < r.Dx(); x++ {
+				pImg.Pix[offset+x] = index
+			}
+		}
+		return nil
+	}
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
 			img.Set(x, y, color.White)
 		}
 	}
 	return nil
+}
+
+func paintWhite(img Image, size image.Rectangle) error {
+	return PaintWhite(img, size)
 }
 
 func drawPlane(img Image, size image.Rectangle) error {

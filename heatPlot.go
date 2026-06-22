@@ -693,10 +693,7 @@ func AddHeaderAndFooterWithHint(img *image.Paletted, function *Function, t, time
 		width = combinedTopFooterWidth
 	}
 
-	xOffset := borderSizes.X
-	if width > img.Rect.Max.X+borderSizes.X*2 {
-		xOffset = (width - img.Rect.Max.X) / 2
-	}
+	xOffset := (width - img.Rect.Dx()) / 2
 
 	// Make the bottom padding taller to accommodate two lines of text: the T/hint line, and the URL line below it.
 	newRect := image.Rect(img.Rect.Min.X, img.Rect.Min.Y, width, img.Rect.Max.Y+borderSizes.Y*2+(16*scale))
@@ -911,6 +908,17 @@ type Image interface {
 }
 
 func PaintWhite(img Image, size image.Rectangle) error {
+	if pImg, ok := img.(*image.Paletted); ok {
+		r := size.Intersect(pImg.Bounds())
+		index := uint8(pImg.Palette.Index(color.White))
+		for y := r.Min.Y; y < r.Max.Y; y++ {
+			offset := pImg.PixOffset(r.Min.X, y)
+			for x := 0; x < r.Dx(); x++ {
+				pImg.Pix[offset+x] = index
+			}
+		}
+		return nil
+	}
 	for x := size.Min.X; x < size.Max.X; x++ {
 		for y := size.Min.Y; y < size.Max.Y; y++ {
 			img.Set(x, y, color.White)

@@ -251,8 +251,8 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 		color.RGBA{R: 0x0F, G: 0x0F, B: 0x0F, A: 0xFF}, // lineColor
 		color.White,
 		color.Black,
-		color.RGBA{128, 128, 128, 255}, // footer grey
-		color.RGBA{220, 220, 220, 255}, // help overlay grey
+		color.RGBA{R: 128, G: 128, B: 128, A: 255}, // footer grey
+		color.RGBA{R: 220, G: 220, B: 220, A: 255}, // help overlay grey
 	}
 	colours = append(colours, heatPlot.HeatColours(*heatColourCount)...)
 

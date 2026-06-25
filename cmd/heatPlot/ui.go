@@ -251,6 +251,8 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 		color.RGBA{R: 0x0F, G: 0x0F, B: 0x0F, A: 0xFF}, // lineColor
 		color.White,
 		color.Black,
+		color.RGBA{R: 128, G: 128, B: 128, A: 255}, // footer grey
+		color.RGBA{R: 220, G: 220, B: 220, A: 255}, // help overlay grey
 	}
 	colours = append(colours, heatPlot.HeatColours(*heatColourCount)...)
 
@@ -281,9 +283,6 @@ func generateImageForUI(state *UIState) (img image.Image, err error) {
 	}
 
 	footerUrl := ""
-	if *testUI != "" { // Only display footer url in export mode
-		footerUrl = *footerText
-	}
 
 	pImg, err2 = heatPlot.AddHeaderAndFooterWithHint(pImg, function, plot.T, *timeUpperBound, *scale, tUsed, footerUrl, hintText)
 	if err2 != nil {
